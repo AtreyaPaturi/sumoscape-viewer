@@ -1,0 +1,1 @@
+{"acc":"D6RBR8","canonical":"D6RBR8","gene":"TARS","name":"Threonine--tRNA ligase, cytoplasmic (EC 6.1.1.3) (Threonyl-tRNA synthetase) (ThrRS)","seq":"MYNILKAEHDSILAEKAEKDSKPIKVTLPDGKQVDAESWKTTPYQIACGI","length":50,"features":[["Domain",24,50,"TGS"]],"pfam":[["PF02824","TGS domain",24,50]],"mapped":false,"note":null,"organism":"Homo sapiens","reviewed":false}

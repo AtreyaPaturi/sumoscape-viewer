@@ -1,0 +1,41 @@
+{
+ "built": "2026-11-06",
+ "sites": {
+  "human": 14869,
+  "mouse": 1963,
+  "proteins": 4951
+ },
+ "annotation": {
+  "uniprot_release": "2026_04",
+  "pfam_source": "InterPro API (Pfam entries)",
+  "feature_types": [
+   "Active site",
+   "Binding site",
+   "Coiled coil",
+   "Compositional bias",
+   "Cross-link",
+   "DNA binding",
+   "Domain",
+   "Glycosylation",
+   "Intramembrane",
+   "Lipidation",
+   "Modified residue",
+   "Motif",
+   "Peptide",
+   "Propeptide",
+   "Region",
+   "Repeat",
+   "Signal",
+   "Site",
+   "Topological domain",
+   "Transit peptide",
+   "Transmembrane",
+   "Zinc finger"
+  ],
+  "isoform_or_changed_mapped": 96,
+  "unmapped_features": 559,
+  "no_uniprot_entry": 25,
+  "pfam_failed": 2
+ },
+ "source_tables": "data"
+}

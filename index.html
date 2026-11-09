@@ -1,0 +1,1842 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="author" content="Atreya Paturi">
+<title>SUMOscape</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='2' y='20' width='28' height='4' rx='2' fill='%23332288'/%3E%3Cline x1='10' y1='20' x2='10' y2='8' stroke='%23332288' stroke-width='2'/%3E%3Ccircle cx='10' cy='7' r='4' fill='%23EE6677'/%3E%3Cline x1='22' y1='20' x2='22' y2='13' stroke='%23332288' stroke-width='2'/%3E%3Ccircle cx='22' cy='12' r='4' fill='%23CCBB44'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/molstar@5.12.0/build/viewer/molstar.css">
+<style>
+  :root { --ink: #1f2328; --muted: #5b6370; --line: #d9dde3; --bg: #f6f7f9; --panel: #ffffff; --accent: #332288; --sel: #e7e4f4; }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; margin: 0; }
+  body { font: 14px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; color: var(--ink); background: var(--bg); display: flex; flex-direction: column; }
+  header { padding: 10px 16px; background: var(--panel); border-bottom: 1px solid var(--line); display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap; }
+  header h1 { font-size: 17px; margin: 0; letter-spacing: .01em; } header h1 span { color: var(--accent); }
+  header .sub { color: var(--muted); font-size: 13px; }
+  .hdr-right { margin-left: auto; display: flex; align-items: center; gap: 10px; }
+  .verchip { font-size: 12px; color: var(--muted); text-decoration: none; border: 1px solid var(--line); border-radius: 999px; padding: 2px 9px; white-space: nowrap; }
+  .verchip:hover { border-color: #9aa3af; color: var(--ink); }
+  #vernew { margin-left: 6px; background: var(--accent); color: #fff; border-radius: 999px; padding: 0 6px; font-size: 10.5px; } #vernew[hidden] { display: none; }
+  .btn { font: inherit; font-size: 13px; padding: 4px 12px; border: 1px solid var(--line); background: #fff; border-radius: 5px; cursor: pointer; color: var(--ink); white-space: nowrap; }
+  .btn:hover { border-color: #9aa3af; } .btn.sm { font-size: 12px; padding: 2px 8px; } .btn:disabled { opacity: .45; cursor: default; }
+  main { flex: 1; min-height: 0; display: grid; grid-template-columns: minmax(0, 1fr) 430px; }
+  #stage { position: relative; min-height: 380px; background: #fff; display: flex; flex-direction: column; min-width: 0; }
+  #tabs { display: flex; gap: 2px; align-items: center; padding: 6px 12px 0; border-bottom: 1px solid var(--line); background: #fbfbfc; flex-wrap: wrap; }
+  #tabs button.tab { font: inherit; font-size: 13px; padding: 6px 14px; border: 1px solid transparent; border-bottom: 0; background: none; border-radius: 6px 6px 0 0; cursor: pointer; color: var(--muted); margin-bottom: -1px; }
+  #tabs button.tab:hover { color: var(--ink); }
+  #tabs button.tab[aria-selected="true"] { background: #fff; border-color: var(--line); color: var(--ink); font-weight: 600; }
+  #tabs .tools { margin-left: auto; display: flex; gap: 6px; align-items: center; padding-bottom: 5px; }
+  .pane { flex: 1; min-height: 0; overflow: auto; position: relative; } .pane[hidden] { display: none; }
+  #fontbtn[aria-expanded="true"] { background: var(--accent); border-color: var(--accent); color: #fff; }
+  #fontpanel { position: absolute; right: 12px; top: 44px; z-index: 30; width: 400px; max-width: calc(100% - 24px); background: #fff; border: 1px solid var(--line);
+               border-radius: 10px; box-shadow: 0 10px 34px rgba(20,24,32,.2); padding: 10px 14px 12px; font-size: 13px; }
+  #fontpanel[hidden] { display: none; }
+  #fontpanel h3 { font-size: 11px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); margin: 0 0 8px; font-weight: 600; display: flex; align-items: center; gap: 6px; }
+  #fontpanel h3 button { margin-left: auto; border: 0; background: none; font-size: 16px; cursor: pointer; color: var(--muted); padding: 0 2px; }
+  #fontpanel .frow { display: grid; grid-template-columns: 86px minmax(0, 1fr); gap: 6px 10px; align-items: center; margin-bottom: 7px; }
+  #fontpanel .frole { border-top: 1px solid #eef0f3; padding-top: 7px; margin-top: 2px; }
+  #fontpanel .frole small { display: block; color: var(--muted); font-size: 11px; line-height: 1.3; margin: -3px 0 5px; }
+  #fontpanel select, #fontpanel input[type=number] { font: inherit; font-size: 13px; padding: 3px 6px; border: 1px solid var(--line); border-radius: 5px; }
+  #fontpanel input[type=number] { width: 62px; } #fontpanel input[type=range] { flex: 1; min-width: 0; }
+  #fontpanel .fctl { display: flex; align-items: center; gap: 6px; }
+  #fontpanel .tog { font: inherit; font-size: 12.5px; width: 26px; height: 26px; border: 1px solid var(--line); background: #fff; border-radius: 5px; cursor: pointer; padding: 0; }
+  #fontpanel .tog[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: #fff; }
+  #fontpanel .fsample { font-size: 11.5px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  #fontpanel .fbar { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; border-top: 1px solid #eef0f3; padding-top: 8px; margin-top: 4px; }
+  #mapwrap { padding: 8px 10px 30px; }
+  .pblock { margin-bottom: 18px; border: 1px solid #eceef2; border-radius: 8px; padding: 6px 6px 2px; }
+  .pblock.active { border-color: #c9c3e6; box-shadow: 0 0 0 2px #f0eef9; }
+  .phead { display: flex; align-items: baseline; gap: 10px; padding: 2px 6px 4px; flex-wrap: wrap; }
+  .phead .g { font-weight: 700; font-size: 15px; cursor: pointer; } .phead .n { color: var(--muted); font-size: 12.5px; }
+  .phead .r { margin-left: auto; display: flex; gap: 4px; } .phead a { color: var(--accent); font-size: 12.5px; }
+  .pnote { font-size: 11.5px; color: #8a5a00; padding: 0 6px 4px; }
+  svg.lolli { display: block; user-select: none; cursor: grab; } svg.lolli.drag { cursor: grabbing; }
+  svg .site { cursor: pointer; } svg .feat, svg .pfeat { cursor: help; }
+  #empty { color: var(--muted); padding: 40px 30px; max-width: 640px; line-height: 1.6; }
+  #empty b { color: var(--ink); }
+  #scatterwrap, #heatwrap { padding: 12px 14px 30px; }
+  .scbar { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; font-size: 13px; margin-bottom: 8px; }
+  .scbar select { font: inherit; font-size: 13px; padding: 3px 6px; border: 1px solid var(--line); border-radius: 5px; }
+  #scbox { position: relative; display: inline-block; } #sccanvas { position: absolute; left: 0; top: 0; } #scsvg { position: relative; display: block; }
+  .sckey { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 12.5px; color: var(--muted); margin-top: 6px; max-width: 760px; }
+  .capt { font-size: 12px; color: var(--muted); max-width: 760px; margin-top: 8px; line-height: 1.5; }
+  #structpane { overflow: hidden; } #viewer { position: absolute; inset: 40px 0 0 0; }
+  #structbar { position: absolute; left: 0; right: 0; top: 0; height: 40px; display: flex; gap: 10px; align-items: center; padding: 0 12px; font-size: 13px; border-bottom: 1px solid #eef0f3; background: #fff; z-index: 3; flex-wrap: wrap; }
+  #structbar select { font: inherit; font-size: 13px; padding: 3px 6px; border: 1px solid var(--line); border-radius: 5px; }
+  #structmsg { position: absolute; left: 12px; top: 52px; z-index: 4; background: rgba(255,255,255,.94); border: 1px solid var(--line); border-radius: 8px; padding: 6px 10px; font-size: 12.5px; color: var(--muted); max-width: 460px; }
+  #structmsg[hidden] { display: none; }
+  #structlegend { position: absolute; right: 12px; bottom: 12px; z-index: 4; background: rgba(255,255,255,.95); border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; font-size: 12px; max-width: 340px; max-height: 55%; overflow: auto; }
+  #structlegend[hidden] { display: none; }
+  #structlegend h4 { margin: 2px 0 4px; font-size: 11.5px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); font-weight: 600; }
+  #structlegend .dl { display: flex; gap: 7px; align-items: baseline; padding: 2px 4px; border-radius: 5px; cursor: pointer; }
+  #structlegend .dl:hover { background: #f1f3f6; } #structlegend .dl.on { background: #e6ecf5; }
+  #structlegend .sw { width: 11px; height: 11px; border-radius: 3px; flex: none; align-self: center; border: 1px solid rgba(0,0,0,.15); }
+  #structlegend .n { margin-left: auto; color: var(--muted); white-space: nowrap; }
+  .msp-state-snapshot-viewport-controls { display: none !important; }
+  aside { background: var(--panel); border-left: 1px solid var(--line); display: flex; flex-direction: column; min-height: 0; overflow-y: auto; }
+  aside select { font: inherit; font-size: 13px; padding: 4px 7px; border: 1px solid var(--line); border-radius: 5px; background: #fff; color: var(--ink); max-width: 100%; }
+  .block { padding: 10px 14px; border-bottom: 1px solid var(--line); } .block[hidden] { display: none; }
+  .block h2 { font-size: 11px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); margin: 0 0 6px; font-weight: 600; }
+  .seg { display: flex; flex-wrap: wrap; gap: 4px; }
+  .seg button { font: inherit; font-size: 12.5px; padding: 4px 9px; border: 1px solid var(--line); background: #fff; border-radius: 5px; cursor: pointer; color: var(--ink); }
+  .seg button:hover { border-color: #9aa3af; }
+  .seg button[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .seg button .sw { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 5px; vertical-align: 0; border: 1px solid rgba(0,0,0,.25); }
+  .legend { margin-top: 8px; font-size: 12px; color: var(--muted); }
+  .legend .keys { display: flex; flex-wrap: wrap; gap: 4px 14px; }
+  .legend .k { cursor: pointer; white-space: nowrap; } .legend .k:hover { color: var(--ink); } .legend .k.hid { opacity: .45; text-decoration: line-through; }
+  .legend .bar { height: 10px; border: 1px solid #9aa3af; border-radius: 2px; margin-top: 4px; }
+  .legend .ticks { display: flex; justify-content: space-between; font-variant-numeric: tabular-nums; }
+  .dot { display: inline-block; width: 11px; height: 11px; border-radius: 50%; border: 1px solid rgba(0,0,0,.35); vertical-align: -1px; margin-right: 5px; }
+  .sq { display: inline-block; width: 14px; height: 9px; border-radius: 2px; vertical-align: 0; margin-right: 5px; border: 1px solid rgba(0,0,0,.15); }
+  .note { font-size: 11.5px; color: var(--muted); margin-top: 6px; } .note a { color: var(--accent); }
+  #protform { display: flex; gap: 6px; align-items: center; position: relative; }
+  #protform input { flex: 1; min-width: 0; font: inherit; font-size: 13px; padding: 4px 7px; border: 1px solid var(--line); border-radius: 5px; }
+  #suggest { position: absolute; left: 0; right: 0; top: 100%; z-index: 20; background: #fff; border: 1px solid var(--line); border-radius: 6px; box-shadow: 0 6px 20px rgba(20,24,32,.15); max-height: 280px; overflow: auto; margin-top: 2px; }
+  #suggest[hidden] { display: none; }
+  #suggest div { padding: 4px 9px; font-size: 12.5px; cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  #suggest div.on, #suggest div:hover { background: var(--sel); } #suggest small { color: var(--muted); }
+  .prow { display: flex; gap: 6px; margin-top: 6px; flex-wrap: wrap; }
+  #chips { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 8px; }
+  .chip { display: inline-flex; align-items: center; gap: 4px; font-size: 12.5px; border: 1px solid var(--line); border-radius: 999px; padding: 1px 4px 1px 9px; cursor: pointer; background: #fff; }
+  .chip.on { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .chip i { font-style: normal; width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+  .chip button { border: 0; background: none; color: inherit; cursor: pointer; font-size: 14px; line-height: 1; padding: 0 4px; opacity: .7; } .chip button:hover { opacity: 1; }
+  #pastebox { width: 100%; margin-top: 6px; font: 12.5px ui-monospace, Menlo, monospace; border: 1px solid var(--line); border-radius: 5px; padding: 5px; } #pastebox[hidden] { display: none; }
+  .user { display: flex; gap: 10px; align-items: flex-start; font-size: 12.5px; color: var(--muted); }
+  .user code, .note code { background: #eef0f3; padding: 0 3px; border-radius: 3px; }
+  #userblock.drag { outline: 2px dashed var(--accent); outline-offset: -4px; }
+  .filters { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  .filters input[type=search], .filters select { font: inherit; font-size: 13px; padding: 4px 7px; border: 1px solid var(--line); border-radius: 5px; background: #fff; color: var(--ink); }
+  .filters input[type=search] { width: 120px; }
+  #count { color: var(--muted); font-size: 12px; margin-left: auto; }
+  #tablewrap { flex: 1 0 220px; overflow: auto; }
+  table.sites { border-collapse: collapse; width: 100%; font-size: 12.5px; }
+  table.sites thead th { position: sticky; top: 0; background: #f0f2f5; text-align: left; padding: 5px 7px; border-bottom: 1px solid var(--line); cursor: pointer; white-space: nowrap; user-select: none; font-weight: 600; }
+  table.sites th.num, table.sites td.num { text-align: right; font-variant-numeric: tabular-nums; }
+  table.sites tbody td { padding: 4px 7px; border-bottom: 1px solid #eef0f3; white-space: nowrap; }
+  table.sites tbody tr { cursor: pointer; } table.sites tbody tr:hover { background: #f3f4f8; } table.sites tbody tr.sel { background: var(--sel); }
+  td .sig { font-weight: 600; } td.nq { color: #98a0ab; }
+  #detail { font-size: 13px; }
+  #detail .name { font-weight: 600; font-size: 14px; }
+  #detail dl { display: grid; grid-template-columns: auto 1fr; gap: 2px 12px; margin: 6px 0 0; }
+  #detail dt { color: var(--muted); } #detail dd { margin: 0; } #detail a { color: var(--accent); }
+  .seqwin { font: 12.5px ui-monospace, SFMono-Regular, Menlo, monospace; letter-spacing: .04em; background: #f6f7f9; border-radius: 4px; padding: 2px 6px; display: inline-block; }
+  .seqwin b { color: #fff; background: #CC3311; border-radius: 2px; padding: 0 1px; }
+  .acts { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
+  footer { padding: 7px 16px; background: var(--panel); border-top: 1px solid var(--line); color: var(--muted); font-size: 12px; }
+  footer a { color: var(--accent); }
+  a.hl, span.hl { color: var(--accent); text-decoration: none; font-weight: 400; font-size: 13px; margin-left: 3px; cursor: pointer; letter-spacing: 0; text-transform: none; }
+  a.hl:hover { color: var(--ink); }
+  #tip { position: fixed; z-index: 50; pointer-events: none; background: rgba(255,255,255,.97); border: 1px solid var(--line); border-radius: 7px; padding: 6px 9px; font-size: 12.5px; line-height: 1.4; box-shadow: 0 3px 14px rgba(20,24,32,.16); max-width: 380px; }
+  #tip[hidden] { display: none; } #tip b { font-weight: 600; } #tip .dim { color: var(--muted); }
+  #toast { position: fixed; left: 50%; bottom: 40px; transform: translateX(-50%); z-index: 60; background: #1f2328; color: #fff; padding: 7px 14px; border-radius: 7px; font-size: 13px; }
+  #toast[hidden] { display: none; }
+  dialog.big { width: min(1020px, 96vw); height: min(780px, 92vh); padding: 0; border: 1px solid var(--line); border-radius: 10px; color: var(--ink); box-shadow: 0 18px 60px rgba(20,24,32,.28); }
+  dialog.big::backdrop { background: rgba(20,24,32,.42); }
+  .hwrap { display: grid; grid-template-rows: auto minmax(0, 1fr); height: 100%; }
+  .hbar { display: flex; gap: 12px; align-items: center; padding: 10px 16px; border-bottom: 1px solid var(--line); }
+  .hbar strong { font-size: 15px; }
+  #hsearch, #bsearch { flex: 1; max-width: 340px; font: inherit; font-size: 13px; padding: 5px 9px; border: 1px solid var(--line); border-radius: 5px; }
+  .hkeys { margin-left: auto; font-size: 12px; color: var(--muted); white-space: nowrap; }
+  kbd { font: 11.5px ui-monospace, SFMono-Regular, Menlo, monospace; border: 1px solid #c7ccd4; border-bottom-width: 2px; border-radius: 4px; padding: 0 5px; background: #f6f7f9; }
+  .hbody { display: grid; grid-template-columns: 236px minmax(0, 1fr); min-height: 0; }
+  .hnav { border-right: 1px solid var(--line); overflow: auto; padding: 10px 8px; background: #fafbfc; }
+  .hnav button { display: block; width: 100%; text-align: left; font: inherit; font-size: 13.5px; padding: 6px 10px; border: 0; background: none; border-radius: 6px; cursor: pointer; color: var(--ink); }
+  .hnav button:hover { background: #eef0f4; } .hnav button.active { background: var(--accent); color: #fff; }
+  .hnav a { display: block; padding: 3px 10px 3px 24px; font-size: 12.5px; color: var(--muted); text-decoration: none; border-radius: 5px; }
+  .hnav a:hover { color: var(--accent); background: #f1f0f8; }
+  .hcontent { overflow: auto; padding: 14px 26px 30px; font-size: 14px; line-height: 1.55; }
+  .hcontent h2 { font-size: 18px; margin: 4px 0 10px; } .hcontent h3 { font-size: 14.5px; margin: 0 0 4px; }
+  .hcontent p { margin: 0 0 8px; max-width: 76ch; } .hcontent ol, .hcontent ul { margin: 0 0 8px; padding-left: 22px; max-width: 76ch; } .hcontent li { margin-bottom: 4px; }
+  .hcontent a { color: var(--accent); } .hcontent code { background: #eef0f3; padding: 0 4px; border-radius: 3px; font-size: 12.5px; }
+  .hcontent article { scroll-margin-top: 10px; padding: 8px 10px; margin: 0 -10px 6px; border-radius: 8px; }
+  .hcontent article.flash { animation: hflash 1.8s ease-out; }
+  @keyframes hflash { from { background: #e7e2f6; } to { background: transparent; } }
+  .htable { border-collapse: collapse; width: 100%; max-width: 80ch; font-size: 13px; margin: 2px 0 8px; }
+  .htable th { background: #f0f2f5; text-align: left; padding: 5px 8px; border-bottom: 1px solid var(--line); }
+  .htable td { padding: 5px 8px; border-bottom: 1px solid #eef0f3; vertical-align: top; }
+  #hresults .hit { display: block; padding: 8px 10px; margin: 0 -10px 4px; border-radius: 8px; text-decoration: none; color: var(--ink); }
+  #hresults .hit:hover { background: #f1f0f8; } #hresults .hit b { color: var(--accent); } #hresults .hit small { color: var(--muted); display: block; }
+  #changelog h3 { margin-top: 14px; }
+  .bcontent { overflow: auto; padding: 0 0 20px; }
+  .bcontent table { border-collapse: collapse; width: 100%; font-size: 12.5px; }
+  .bcontent th { position: sticky; top: 0; background: #f0f2f5; text-align: left; padding: 5px 8px; border-bottom: 1px solid var(--line); cursor: pointer; white-space: nowrap; }
+  .bcontent td { padding: 4px 8px; border-bottom: 1px solid #eef0f3; }
+  .bcontent tr:hover td { background: #f6f5fb; } .bcontent td.num { text-align: right; font-variant-numeric: tabular-nums; }
+  .ovgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; margin: 6px 0 14px; }
+  .ovgrid div { border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; } .ovgrid b { display: block; font-size: 20px; font-variant-numeric: tabular-nums; } .ovgrid span { font-size: 12px; color: var(--muted); }
+  @media (max-width: 720px) {
+    .hbody { grid-template-columns: 1fr; grid-template-rows: auto minmax(0, 1fr); }
+    .hnav { display: flex; gap: 4px; overflow-x: auto; border-right: 0; border-bottom: 1px solid var(--line); padding: 6px 8px; }
+    .hnav button { width: auto; white-space: nowrap; } .hnav a { display: none; } .hkeys { display: none; }
+  }
+  @media (max-width: 900px) {
+    body { height: auto; } main { grid-template-columns: 1fr; }
+    #stage { height: 70vh; } aside { border-left: 0; border-top: 1px solid var(--line); } #tablewrap { max-height: 60vh; }
+  }
+</style>
+</head>
+<body>
+<header>
+  <h1>SUMO<span>scape</span></h1>
+  <span class="sub">SUMO2/3 acceptor sites of any protein — one site map per condition, the Z-score landscape, every annotated domain and the predicted structure</span>
+  <span class="hdr-right">
+    <a class="verchip" href="#help/changelog" data-help="changelog" title="Version — open the changelog"><span id="ver"></span><span id="vernew" hidden>new</span></a>
+    <span><button class="btn" id="linkbtn" title="Copy a link that reproduces what is shown">Copy link</button><a class="hl" href="#help/start/share" data-help="start/share" title="Help: sharing a view">ⓘ</a></span>
+    <button class="btn" id="ovbtn" title="Numbers on the dataset and the proteins shown">Overview</button>
+    <button class="btn" id="helpbtn" title="Help (press ?)">Help</button>
+  </span>
+</header>
+<main>
+  <div id="stage">
+    <div id="tabs" role="tablist">
+      <button class="tab" role="tab" data-tab="map" aria-selected="true">Site map</button>
+      <button class="tab" role="tab" data-tab="scatter" aria-selected="false">Z-score landscape</button>
+      <button class="tab" role="tab" data-tab="heat" aria-selected="false">Heatmap</button>
+      <button class="tab" role="tab" data-tab="structure" aria-selected="false">Structure</button>
+      <a class="hl" href="#help/map/what" data-help="map/what" id="tabhelp" title="Help: this view">ⓘ</a>
+      <span class="tools">
+        <button class="btn sm" id="expsvg" title="Download the current view as SVG (vector, for figures)">SVG</button>
+        <button class="btn sm" id="exppng" title="Download the current view as PNG (2× resolution)">PNG</button>
+        <button class="btn sm" id="expcsv" title="Download the sites of the table as CSV">CSV</button>
+        <button class="btn sm" id="fontbtn" aria-expanded="false" title="Fonts of the figures: family, size, bold and italic of the site labels, axes and chart labels"><b>Aa</b> Fonts</button>
+        <a class="hl" href="#help/export/files" data-help="export/files" title="Help: exporting">ⓘ</a>
+      </span>
+    </div>
+    <div id="fontpanel" hidden role="dialog" aria-label="Figure fonts"></div>
+    <div class="pane" id="mappane"><div id="mapwrap"></div></div>
+    <div class="pane" id="scatterpane" hidden><div id="scatterwrap">
+      <div class="scbar">
+        <label>x <select id="scx"></select></label><label>y <select id="scy"></select></label>
+        <label><input type="checkbox" id="scbg"> background: significant sites only</label>
+        <label><input type="checkbox" id="sciso" checked> iso-control lines</label>
+        <a class="hl" href="#help/scatter/read" data-help="scatter/read" title="Help: reading the Z-score landscape">ⓘ how to read this</a>
+      </div>
+      <div id="scbox"><canvas id="sccanvas"></canvas><svg id="scsvg"></svg></div>
+      <div class="sckey" id="sckey"></div>
+      <div class="capt" id="sccapt"></div>
+    </div></div>
+    <div class="pane" id="heatpane" hidden><div id="heatwrap"></div></div>
+    <div class="pane" id="structpane" hidden>
+      <div id="structbar">
+        <span id="structname"><b>No protein</b></span>
+        <label>colour sites by <select id="stcol"></select></label>
+        <label>colour protein by <select id="stprot">
+          <option value="plain">nothing (grey)</option>
+          <option value="domains">domains (UniProt)</option>
+          <option value="pfam">Pfam domains</option>
+          <option value="plddt">confidence (pLDDT)</option>
+        </select></label>
+        <a class="hl" href="#help/structure/domains" data-help="structure/domains" title="Help: domains on the structure">ⓘ</a>
+        <label><input type="checkbox" id="stlabels" checked> labels</label>
+        <a class="hl" href="#help/structure/what" data-help="structure/what" title="Help: the structure view">ⓘ</a>
+      </div>
+      <div id="viewer"></div>
+      <div id="structmsg" hidden></div>
+      <div id="structlegend" hidden></div>
+    </div>
+  </div>
+  <aside>
+    <div class="block">
+      <h2>Dataset <a class="hl" href="#help/data/datasets" data-help="data/datasets" title="Help: datasets">ⓘ</a></h2>
+      <select id="dataset" aria-label="Dataset" style="width:100%;font-weight:600"></select>
+      <div class="note" id="dsinfo"></div>
+    </div>
+    <div class="block">
+      <h2>Proteins <a class="hl" href="#help/proteins/add" data-help="proteins/add" title="Help: adding proteins">ⓘ</a></h2>
+      <form id="protform" autocomplete="off">
+        <input type="search" id="protq" placeholder="Gene or UniProt accession, e.g. RANGAP1, TOP2A, P46060" aria-label="Add a protein">
+        <button class="btn" type="submit">Add</button>
+        <div id="suggest" hidden></div>
+      </form>
+      <div class="prow">
+        <button class="btn sm" id="browsebtn" title="List every protein of the dataset; add one, several or all">Browse all proteins…</button>
+        <button class="btn sm" id="pastebtn" title="Paste a list of genes or accessions">Paste a list…</button>
+        <button class="btn sm" id="clearbtn" title="Remove every protein">Clear</button>
+      </div>
+      <textarea id="pastebox" rows="3" hidden placeholder="Genes or accessions, separated by spaces, commas or lines — press Ctrl+Enter to add"></textarea>
+      <div id="chips"></div>
+    </div>
+    <div class="block">
+      <h2>Conditions shown <a class="hl" href="#help/map/conditions" data-help="map/conditions" title="Help: one panel per condition">ⓘ</a></h2>
+      <div class="seg" id="condbtns"></div>
+    </div>
+    <div class="block">
+      <h2>Colour the sites by <a class="hl" href="#help/map/colour" data-help="map/colour" title="Help: colourings">ⓘ</a></h2>
+      <div class="seg" id="colbtns"></div>
+      <div class="legend" id="legend"></div>
+    </div>
+    <div class="block">
+      <h2>Site labels <a class="hl" href="#help/map/labels" data-help="map/labels" title="Help: site labels">ⓘ</a></h2>
+      <div class="seg" id="labbtns"></div>
+      <div class="seg" id="sizebtns" style="margin-top:6px"></div>
+    </div>
+    <div class="block">
+      <h2>Annotation tracks <a class="hl" href="#help/tracks/what" data-help="tracks/what" title="Help: annotation tracks">ⓘ</a></h2>
+      <div class="legend" id="tracklegend" style="margin-top:0"></div>
+    </div>
+    <div class="block" id="userblock">
+      <h2>Your data <a class="hl" href="#help/data/format" data-help="data/format" title="Help: loading your own table">ⓘ</a></h2>
+      <div class="user">
+        <button class="btn sm" id="pick">Load a table…</button>
+        <input type="file" id="file" accept=".csv,.tsv,.txt" hidden>
+        <span id="userinfo">CSV/TSV with <code>protein</code> or <code>gene</code>, <code>position</code> and value columns (<code>z_&lt;condition&gt;</code>, optional <code>q_&lt;condition&gt;</code>). <a href="#" id="example">Example</a></span>
+      </div>
+      <div class="note">The file is read in your browser. It is not uploaded or stored.</div>
+    </div>
+    <div class="block">
+      <div class="filters">
+        <input type="search" id="q" placeholder="Filter, e.g. K524" aria-label="Filter sites">
+        <select id="fsig" aria-label="Significance"></select>
+        <select id="fmotif" aria-label="Motif"><option value="">any motif</option><option value="psiKxE">ψKxE</option><option value="KxE">KxE (any)</option><option value="inv">inverted [ED]xK</option><option value="none">no motif</option></select>
+        <span id="count"></span><a class="hl" href="#help/table/filters" data-help="table/filters" title="Help: the site table">ⓘ</a>
+      </div>
+    </div>
+    <div id="tablewrap"><table class="sites"><thead id="thead"></thead><tbody id="rows"></tbody></table></div>
+    <div class="block" id="detail">Select a site in the table or click a lollipop head. <a class="hl" href="#help/table/details" data-help="table/details" title="Help: the site details">ⓘ</a></div>
+  </aside>
+</main>
+<footer>
+  <b>SUMOscape</b> · Atreya Paturi · © <span id="year">2026</span> Pichler Group, ETH Zurich (<a href="#help/about/licence" data-help="about/licence">licence</a>) ·
+  Sites: Hendriks et al., <a href="https://doi.org/10.1038/s41467-018-04957-4" target="_blank" rel="noopener">Nat Commun 9:2456 (2018)</a>, CC BY 4.0 ·
+  Annotation: <a href="https://www.uniprot.org" target="_blank" rel="noopener">UniProt</a> <span id="uprel"></span>, <a href="https://www.ebi.ac.uk/interpro/" target="_blank" rel="noopener">InterPro/Pfam</a> ·
+  Structures: <a href="https://alphafold.ebi.ac.uk" target="_blank" rel="noopener">AlphaFold DB</a>, rendered with <a href="https://molstar.org" target="_blank" rel="noopener">Mol*</a>. Nothing is uploaded.
+</footer>
+<div id="tip" hidden></div>
+<div id="toast" hidden></div>
+
+<dialog class="big" id="browse" aria-labelledby="browsetitle">
+  <div class="hwrap">
+    <div class="hbar">
+      <strong id="browsetitle">All proteins</strong>
+      <input type="search" id="bsearch" placeholder="Filter by gene, accession or name…" aria-label="Filter proteins">
+      <span class="dim" id="bcount" style="font-size:12.5px;color:var(--muted)"></span>
+      <span class="hkeys"><button class="btn sm" id="baddsel">Add selected</button> <button class="btn sm" id="baddall">Add all shown</button> <a class="hl" href="#help/proteins/browse" data-help="proteins/browse">ⓘ</a></span>
+      <button class="btn" id="bclose">Close</button>
+    </div>
+    <div class="bcontent"><table><thead><tr><th style="width:28px"><input type="checkbox" id="ball" aria-label="Select all shown"></th><th data-k="gene">Gene</th><th data-k="acc">Accession</th><th data-k="name">Protein</th><th data-k="n" class="num">Sites</th></tr></thead><tbody id="brows"></tbody></table></div>
+  </div>
+</dialog>
+
+<dialog class="big" id="overview" aria-labelledby="ovtitle">
+  <div class="hwrap">
+    <div class="hbar"><strong id="ovtitle">Overview</strong><span class="hkeys"><a class="hl" href="#help/overview/what" data-help="overview/what">ⓘ how these are counted</a></span><button class="btn" id="ovclose">Close</button></div>
+    <div class="hcontent" id="ovcontent"></div>
+  </div>
+</dialog>
+
+<dialog class="big" id="help" aria-labelledby="helptitle">
+  <div class="hwrap">
+    <div class="hbar">
+      <strong id="helptitle">Help</strong>
+      <input type="search" id="hsearch" placeholder="Search the help…" aria-label="Search the help">
+      <span class="hkeys"><kbd>?</kbd> opens · <kbd>Esc</kbd> closes</span>
+      <button class="btn" id="hclose" aria-label="Close help">Close</button>
+    </div>
+    <div class="hbody">
+      <nav class="hnav" id="hnav" aria-label="Help topics"></nav>
+      <div class="hcontent" id="hcontent">
+        <div id="hresults" hidden></div>
+
+        <section data-topic="start" data-title="Quick start">
+          <article data-entry="what"><h3>What SUMOscape shows</h3>
+            <p>SUMOscape is a viewer for the SUMO2/3 acceptor lysines of any protein in a site-resolved SUMO proteomics dataset. It opens on the human dataset of Hendriks et al. 2018 (<span data-n="human_sites"></span> sites on <span data-n="human_proteins"></span> proteins; control, proteasome inhibition with MG132 and heat shock) and also carries the mouse organ dataset of the same paper; a table of your own can be loaded as a further dataset.</p>
+            <p>For every protein it draws one lollipop panel per condition — the Z-score of each site in that condition — above tracks with every domain, region, motif, topology feature and lysine modification annotated in UniProt and every Pfam domain from InterPro, each labelled. The <i>Z-score landscape</i> places the protein's sites among all sites of the dataset, the <i>Heatmap</i> compares the conditions site by site, and <i>Structure</i> shows the sites on the AlphaFold model.</p></article>
+          <article data-entry="steps"><h3>Seven steps</h3>
+            <ol>
+              <li><b>Add proteins</b> under <i>Proteins</i>: type a gene or accession, paste a list, or browse all proteins of the dataset. <a data-help="proteins/add" href="#help/proteins/add">Proteins</a>.</li>
+              <li><b>Read the site map.</b> One panel per condition; a stem goes up when the site is higher in that condition than in the others, down when lower. Filled heads are significant (q &lt; 0.05). <a data-help="map/what" href="#help/map/what">Site map</a>.</li>
+              <li><b>Zoom</b> with the mouse wheel over a protein, drag to move, double click to see it whole. Below about 110 residues the sequence appears on the axis.</li>
+              <li><b>Find a site</b> in the table at the right; a click selects it everywhere and shows its details below the table.</li>
+              <li><b>Place the sites among all others</b> in the <i>Z-score landscape</i>. <a data-help="scatter/read" href="#help/scatter/read">How to read it</a>.</li>
+              <li><b>See the structure</b>: the AlphaFold model with the sites, coloured as in the site map. <a data-help="structure/what" href="#help/structure/what">Structure</a>.</li>
+              <li><b>Share or export</b>: <i>Copy link</i> reproduces the view; SVG, PNG and CSV download what is shown. <a data-help="export/files" href="#help/export/files">Export</a>.</li>
+            </ol></article>
+          <article data-entry="share"><h3>Sharing a view</h3>
+            <p>The address of the page holds what is shown and is updated as you go; <i>Copy link</i> copies it.</p>
+            <table class="htable"><tr><th>In the link</th><th>Parameter</th></tr>
+              <tr><td>dataset</td><td><code>d</code></td></tr>
+              <tr><td>proteins shown, and the active one</td><td><code>p</code> (accessions, comma-separated), <code>a</code></td></tr>
+              <tr><td>tab</td><td><code>tab</code> (<code>map</code>, <code>scatter</code>, <code>heat</code>, <code>structure</code>)</td></tr>
+              <tr><td>conditions shown; colouring; labels; panel size</td><td><code>c</code>, <code>colour</code>, <code>labels</code>, <code>size</code></td></tr>
+              <tr><td>annotation tracks switched off</td><td><code>hide</code></td></tr>
+              <tr><td>axes of the landscape</td><td><code>x</code>, <code>y</code></td></tr>
+              <tr><td>selected site</td><td><code>site</code> (<code>accession:position</code>)</td></tr>
+              <tr><td>an open help entry</td><td>the part after <code>#</code>, e.g. <code>#help/scatter/read</code></td></tr></table>
+            <p>What is at its default is left out. A table of your own is never written into a link.</p></article>
+          <article data-entry="keys"><h3>Keyboard and mouse</h3>
+            <p><kbd>?</kbd> opens this help, <kbd>Esc</kbd> closes it. Over a site map: wheel = zoom, drag = move, double click = whole protein. Every <span class="hl">ⓘ</span> opens the help at the entry for the control next to it.</p></article>
+        </section>
+
+        <section data-topic="proteins" data-title="Proteins" hidden>
+          <article data-entry="add"><h3>Adding proteins</h3>
+            <p>Type a gene symbol or a UniProt accession; suggestions come from the proteins of the current dataset, with their number of sites. <i>Add</i> (or Enter) adds the protein below the others; any number can be shown at once, each with its own panels and tracks. A click on a chip makes that protein the active one (its sites fill the table, the landscape and the structure); × removes it.</p>
+            <p>A protein that is not in the dataset can be added too: it is looked up in UniProt (reviewed entry of the dataset's organism), and its domains and lysines are drawn without sites. This is how SUMOscape works for any protein, not only those of one complex.</p></article>
+          <article data-entry="browse"><h3>Browse all proteins</h3>
+            <p><i>Browse all proteins…</i> lists every protein of the dataset with its number of sites. Filter by gene, accession or name, sort by a column, tick proteins and <i>Add selected</i>, or <i>Add all shown</i>. Up to <span data-n="maxadd"></span> proteins are added at once so that the page stays responsive; narrow the filter to add a different set.</p></article>
+          <article data-entry="paste"><h3>Paste a list</h3>
+            <p><i>Paste a list…</i> opens a box for genes or accessions separated by spaces, commas, semicolons or lines (for example a hit list). <kbd>Ctrl</kbd>+<kbd>Enter</kbd> adds them; names that cannot be resolved are reported.</p></article>
+        </section>
+
+        <section data-topic="map" data-title="Site map (lollipops)" hidden>
+          <article data-entry="what"><h3>What the site map shows</h3>
+            <p>Each protein is a block. The horizontal axis is the residue position of the protein's sequence (the accession given by the dataset, which may be an isoform). Above the tracks there is one panel per condition; in each, every site is a stem from the zero line to its Z-score in that condition, with a head at the tip. Up means the site is relatively higher in that condition, down relatively lower.</p>
+            <p>All panels share the same Z scale, so the heights can be compared between conditions and between proteins. A vertical dashed line marks the selected site through all panels and tracks.</p></article>
+          <article data-entry="conditions"><h3>One panel per condition</h3>
+            <p>The earlier SUMO Site Map drew one lollipop for <i>MG132 vs control</i> or <i>heat vs control</i>. SUMOscape draws control, MG132 and heat shock as three separate panels, so that the baseline is seen directly rather than folded into a ratio. The buttons under <i>Conditions shown</i> switch panels on and off; for the mouse dataset there is one panel per organ.</p>
+            <p>Note that the three Z-scores of a site are not independent: they are standardised across the three conditions for that site, so they add up to zero. A site that is high in MG132 and in heat shock is necessarily low in control. See <a data-help="scatter/zscore" href="#help/scatter/zscore">What a Z-score is here</a>.</p></article>
+          <article data-entry="colour"><h3>Colourings</h3>
+            <ul>
+              <li><b>Condition</b>: the colour of the panel's condition; the head is filled when the site is significant in that condition (q &lt; 0.05), open otherwise. Control has no test of its own; its heads are filled when the site is significant in any condition.</li>
+              <li><b>Z-score</b>: a blue–white–red scale of the Z-score.</li>
+              <li><b>Motif</b>: the SUMO consensus around the lysine, read off the sequence: ψKxE (ψ = A, I, L, M, F, V or P), other KxE, the inverted motif [ED]xK, or none.</li>
+              <li><b>Cell lines</b> (human dataset): in how many of HEK293, HeLa and U2OS the site was detected.</li>
+              <li><b>Known in UniProt</b>: whether UniProt already records a SUMO cross-link at that lysine, another lysine modification (ubiquitin, acetyl, methyl…), or nothing.</li>
+              <li><b>Domain context</b>: whether the lysine lies in a domain (UniProt or Pfam), in a disordered region, or elsewhere.</li>
+            </ul>
+            <p>A click on a legend entry hides those sites; a second click shows them again.</p></article>
+          <article data-entry="labels"><h3>Site labels</h3>
+            <p>Every site can be labelled with its residue (K524). <i>Auto</i> labels as many as fit without overlap, the strongest first; <i>All</i> labels every site (overlaps possible when zoomed out); <i>Significant</i> only those with q &lt; 0.05 in that panel's condition; <i>None</i> hides them. The selected site is always labelled. <i>Comfortable</i> and <i>Compact</i> set the height of the panels.</p></article>
+          <article data-entry="zoom"><h3>Zoom and sequence</h3>
+            <p>Wheel over a protein zooms around the pointer; drag moves; double click returns to the whole protein. When fewer than about 110 residues are in view, the residue letters appear on the axis with lysines in red. Each protein keeps its own zoom.</p></article>
+        </section>
+
+        <section data-topic="tracks" data-title="Annotation tracks" hidden>
+          <article data-entry="what"><h3>The tracks</h3>
+            <table class="htable">
+              <tr><th>Track</th><th>What it holds</th></tr>
+              <tr><td>Domains</td><td>UniProt Domain, Repeat, Zinc finger, DNA binding, Coiled coil</td></tr>
+              <tr><td>Pfam</td><td>Pfam families and domains from InterPro — often present where UniProt has no <i>Domain</i> entry (RanGAP1, for instance)</td></tr>
+              <tr><td>Regions &amp; motifs</td><td>UniProt Region (including disordered regions), Motif (including SUMO-interacting motifs and NLS/NES where annotated), Compositional bias</td></tr>
+              <tr><td>Topology &amp; processing</td><td>Topological domain, Transmembrane, Intramembrane, Signal, Transit peptide, Propeptide, Peptide</td></tr>
+              <tr><td>Sites &amp; lysine PTMs</td><td>Active site, Binding site, Site, and the lysine modifications of UniProt: cross-links (SUMO, ubiquitin), modified lysines (acetyl, methyl, …), lipidation, glycation</td></tr>
+              <tr><td>Lysines</td><td>every lysine of the sequence (grey), those carrying a site of the dataset (dark), and the consensus motifs underneath</td></tr></table>
+            <p>Every range feature carries its name: inside the bar when it fits, otherwise in a row underneath, joined to the bar by a thin line. Hover for the type, the exact range and the source. A click on a track name in the legend hides or shows the track.</p></article>
+          <article data-entry="missing"><h3>Why more domains than before</h3>
+            <p>The earlier SUMO Site Map kept seven UniProt feature types and hid every annotation when the accession was an isoform. SUMOscape keeps the further types listed above, adds the Pfam domains, and maps the canonical annotation onto isoforms by their residues, so isoforms show their domains too. A note under the protein's name says when this was done.</p></article>
+          <article data-entry="isoforms"><h3>Isoforms and changed sequences</h3>
+            <p>UniProt annotates the canonical sequence. When a site table names an isoform, or the canonical sequence has changed since the table was made, each feature is placed on the table's own sequence by searching for its residues (with six flanking residues for short features). A feature whose residues are not found once and only once in the target is left out rather than placed at a wrong position.</p></article>
+        </section>
+
+        <section data-topic="scatter" data-title="Z-score landscape" hidden>
+          <article data-entry="read"><h3>How to read it</h3>
+            <p>Every site of the dataset is a grey point at its Z-score in two conditions (by default MG132 on x and heat shock on y). The sites of the proteins shown are drawn on top, in the protein's colour, and labelled. Hovering a grey point names it; a click on a grey point adds its protein.</p>
+            <p>With MG132 and heat shock as axes, the quadrants read: upper left = higher in heat shock (<i>HS-preferring</i>), upper right = higher in both stresses than in control (<i>both up</i>), lower right = <i>MG132-preferring</i>, lower left = highest in control (<i>both down</i>).</p></article>
+          <article data-entry="zscore"><h3>What a Z-score is here</h3>
+            <p>In this dataset the Z-scores are standardised per site across its conditions (Hendriks et al. 2018). For every site Z(control) + Z(MG132) + Z(heat shock) = 0. A Z-score therefore says in which condition a site is relatively high, not by how much it changed: a site that barely changes and one that rises a hundred-fold can have the same Z-scores. For the size of the change use the log2 fold change and the q-value in the details and in the table.</p>
+            <p>Because control is fixed by the other two, the landscape is complete in two dimensions: the dashed <i>iso-control</i> lines join the points of equal control Z-score (Z<sub>ctrl</sub> = −(x + y)). They are drawn when the two axes are MG132 and heat shock.</p></article>
+          <article data-entry="why"><h3>Why Z-scores rather than log2 fold changes</h3>
+            <p>Fold changes need a reference condition (control) and their spread differs between conditions; Z-scores put all conditions — control included — on the same scale and so can be drawn as separate, comparable panels and as any pair of axes. The price is that the magnitude of the change is lost, which is why the fold changes and q-values stay in the table and in the details.</p></article>
+        </section>
+
+        <section data-topic="heat" data-title="Heatmap" hidden>
+          <article data-entry="what"><h3>The heatmap</h3>
+            <p>One row per site of the proteins shown (grouped by protein, in sequence order), one column per condition, coloured by Z-score on the same scale as the site map. A dot marks q &lt; 0.05 in that condition. A click on a row selects the site.</p></article>
+        </section>
+
+        <section data-topic="structure" data-title="Structure" hidden>
+          <article data-entry="what"><h3>The structure view</h3>
+            <p>The AlphaFold DB model of the active protein (canonical UniProt sequence), fetched by your browser. The sites are drawn as spheres, coloured by the Z-score of the chosen condition or by any colouring of the site map; the selected site is labelled and in focus. <i>colour protein by → confidence (pLDDT)</i> colours the model by the confidence of the prediction: dark blue ≥ 90, light blue 70–90, yellow 50–70, orange &lt; 50.</p>
+            <p>A site is placed on the model by its position when the dataset's sequence and the model's are the same, otherwise by its 15-residue sequence context; a site that cannot be placed is listed in the message box. Isoform-only sites have no model.</p></article>
+          <article data-entry="domains"><h3>Which domains carry SUMO sites</h3>
+            <p><i>colour protein by → domains (UniProt)</i> or <i>Pfam domains</i> paints every annotated domain on the model. A domain that contains at least one of the sites shown gets its own colour and, with <i>labels</i> on, its name and number of sites in the 3D view; a domain without sites is drawn in pale grey, and the rest of the chain in near-white. UniProt domains include repeats, zinc fingers, DNA-binding regions and coiled coils; a domain nested in another is drawn on top.</p>
+            <p>The legend at the bottom right lists the domains with sites first — range, number of sites and how many of them have q &lt; 0.05 in any condition — then those without. A click on a domain zooms to it; a second click shows the whole model again. Sites hidden through the legend of the site colouring are not counted. When the dataset's sequence differs from the model's, a domain is placed by its residues and marked <i>not placed</i> if they are not found once in the model.</p>
+            <p>"Carries a site" means a SUMO acceptor lysine of the dataset lies inside the domain's boundaries; it says nothing about how much of the protein is modified there.</p></article>
+          <article data-entry="limits"><h3>What a predicted structure can and cannot say</h3>
+            <p>AlphaFold models are predictions of the unmodified, monomeric protein. Low-confidence (pLDDT &lt; 50) regions are usually disordered and should not be read as a fold; many SUMO sites lie in such regions. Nothing about SUMO itself, partners, or the conjugated state is in the model.</p></article>
+          <article data-entry="model"><h3>Modelling a SUMO conjugate (in preparation)</h3>
+            <p>The details of a site offer input files for structure predictors in which SUMO2 is covalently attached to that lysine (isopeptide bond between SUMO2 Gly93 C and the lysine NZ): a Boltz-2 YAML file with a <code>bond</code> constraint and an AlphaFold 3 JSON with <code>bondedAtomPairs</code>. Run them with your own installation; the result can then be compared with the unmodified model. This is the first step of the planned conjugate-modelling module; see <a data-help="about/roadmap" href="#help/about/roadmap">Roadmap</a>.</p></article>
+        </section>
+
+        <section data-topic="table" data-title="Site table and details" hidden>
+          <article data-entry="filters"><h3>The site table</h3>
+            <p>The table lists the sites of the proteins shown (active protein first). Columns: site, the Z-score in each condition, the q-values of the conditions with a test, and the motif. A click on a column header sorts; a second click reverses. Filters: free text (gene or residue, e.g. <code>K524</code>), significance in one condition or in any, and motif.</p></article>
+          <article data-entry="details"><h3>Site details</h3>
+            <p>The details give the protein, the residue with its sequence window, the motif, the annotation that covers the lysine (domain, Pfam, region), the Z-scores, fold changes and q-values per condition, the cell lines it was detected in, and what UniProt records at that lysine. Links open UniProt, the AlphaFold DB and PhosphoSitePlus; buttons show the site on the structure and download modelling input.</p></article>
+        </section>
+
+        <section data-topic="data" data-title="Data" hidden>
+          <article data-entry="datasets"><h3>Datasets</h3>
+            <p><b>Human cells</b> — Hendriks IA, Lyon D, Su D, Skotte NH, Daniel JA, Jensen LJ, Nielsen ML. Site-specific characterization of endogenous SUMOylation across species and organs. Nat Commun 9:2456 (2018), Supplementary Data 1 (CC BY 4.0). <span data-n="human_sites"></span> sites on <span data-n="human_proteins"></span> protein accessions, detected in HEK293, HeLa and U2OS and quantified in HEK293 under control, MG132 and heat shock: Z-scores, log2 fold changes and q-values as published.</p>
+            <p><b>Mouse organs</b> — the same paper, Supplementary Data 5: <span data-n="mouse_sites"></span> sites on <span data-n="mouse_proteins"></span> accessions in eight organs, with per-organ Z-scores, presence and an ANOVA q-value across organs.</p>
+            <p><b>Annotation</b> — UniProtKB release <span data-n="uniprot_release"></span> (snapshot taken when the data were built, so results are reproducible), Pfam via the InterPro API. <b>Structures</b> — AlphaFold DB, fetched live.</p></article>
+          <article data-entry="format"><h3>Your data</h3>
+            <p><i>Load a table…</i> (or drop a file on the block) reads a CSV or TSV into the page as a further dataset. Nothing is uploaded or stored; it is gone when the page is closed.</p>
+            <ul>
+              <li><code>protein</code> (UniProt accession) or <code>gene</code> identifies the protein; <code>position</code> the lysine.</li>
+              <li><code>z_&lt;condition&gt;</code> columns become one panel each (e.g. <code>z_control</code>, <code>z_treated</code>); optional <code>q_&lt;condition&gt;</code> and <code>lfc_&lt;condition&gt;</code> columns give significance and fold change.</li>
+              <li>Without <code>z_</code> columns, every other numeric column becomes a panel of its own.</li>
+            </ul>
+            <p>Proteins in the bundled annotation are drawn at once; others are fetched from UniProt. <a href="#" class="exlink">Download an example</a>.</p></article>
+        </section>
+
+        <section data-topic="export" data-title="Export" hidden>
+          <article data-entry="files"><h3>Exporting</h3>
+            <p><b>SVG</b> downloads the current view as a vector graphic — the site maps of all proteins shown, the landscape or the heatmap — ready for Illustrator or Inkscape. <b>PNG</b> downloads the same at twice the screen resolution. <b>CSV</b> downloads the sites of the table with all their values. The structure view has Mol*'s own screenshot button (camera icon at its top right).</p></article>
+          <article data-entry="fonts"><h3>Figure fonts</h3>
+            <p><b>Aa Fonts</b>, next to the download buttons, sets the text of the site map, the landscape and the heatmap — on screen and in the downloaded SVG and PNG alike, so what you see is what you get.</p>
+            <ul>
+              <li><b>Font</b>: Helvetica/Arial, Arial, Calibri, Verdana, Times New Roman, Georgia, Courier New or the system font. These are fonts most computers have, so an SVG opens with the same font elsewhere.</li>
+              <li><b>Site labels</b> — the residue labels at the lollipop heads (K524) and the site names in the landscape and the heatmap.</li>
+              <li><b>Axis</b> — tick numbers, axis titles, the residue letters when zoomed in, the numbers of the colour scale.</li>
+              <li><b>Chart labels</b> — condition names, track names, domain and region labels, quadrant names, protein headers.</li>
+            </ul>
+            <p>Each group has a size (5–30 px; one px is one pt when the SVG is placed at 100 %), <b>B</b> for bold and <i>I</i> for italic. <i>Black text</i> turns the grey labels black for print. Presets: <i>Journal, 7 pt</i> (Arial, black), <i>Presentation</i>, <i>Poster</i>; <i>Reset</i> returns to the screen default. Margins, track rows and label spacing grow with the text so that larger labels do not overlap. The setting is kept in this browser.</p></article>
+        </section>
+
+        <section data-topic="overview" data-title="Overview" hidden>
+          <article data-entry="what"><h3>The Overview window</h3>
+            <p>Counts of the dataset (sites, proteins, significant sites per condition, sites per quadrant of the landscape) and of the proteins shown (sites, sites in domains, motif share, significant sites). These are counts only — no tests are run in the page.</p></article>
+        </section>
+
+        <section data-topic="limits" data-title="Limitations" hidden>
+          <article data-entry="reference"><h3>Overlooked in the earlier tools</h3>
+            <p>What SUMOscape changes, and why:</p>
+            <ul>
+              <li><b>Domains missing</b>: the SUMO Site Map kept only seven UniProt feature types (topology, transmembrane, compositional bias, signal peptides, lysine modifications and all Pfam domains were absent) and hid every domain for isoform accessions.</li>
+              <li><b>Ratios hid the baseline</b>: one lollipop per stress <i>vs</i> control; control itself was never drawn.</li>
+              <li><b>Z-scores misread</b>: the per-site standardisation (the three Z-scores add up to zero) was not stated, so "high Z" could be read as "large change".</li>
+              <li><b>Significance as opacity</b>: q-values were encoded as marker transparency, which is hard to read and collides with overlapping points; SUMOscape uses filled/open heads.</li>
+              <li><b>One protein at a time</b>: no way to compare several proteins or add a list.</li>
+              <li><b>Ribosome only</b> (Ribosome SUMO Viewer): structure, statistics and help built around one complex.</li>
+              <li><b>Single motif flag</b>: only "KxE yes/no"; no ψKxE or inverted motif, nothing about competing lysine modifications.</li>
+              <li><b>Not citable / not versioned</b>: no version, no changelog, annotation fetched without recording the UniProt release.</li>
+              <li><b>Server-bound</b> (Shiny): needs a running R server; SUMOscape is a static page.</li>
+            </ul></article>
+          <article data-entry="own"><h3>Limitations of SUMOscape</h3>
+            <ul>
+              <li>The site data are those of the published tables: no re-quantification, no peptide-level evidence, a single cell line (HEK293) for the quantification.</li>
+              <li>Z-scores carry no magnitude (see <a data-help="scatter/zscore" href="#help/scatter/zscore">What a Z-score is here</a>); fold changes are relative to control and capped by detection.</li>
+              <li>Feature mapping onto isoforms is by exact residues; features in alternatively spliced segments are left out.</li>
+              <li>AlphaFold models are of the canonical, unmodified monomer; isoform-only sites cannot be shown on a structure.</li>
+              <li>Pfam and AlphaFold depend on public services; the UniProt and Pfam snapshot of the build is used when they cannot be reached.</li>
+              <li>Statistics are descriptive counts only.</li>
+            </ul></article>
+        </section>
+
+        <section data-topic="about" data-title="About and licence" hidden>
+          <article data-entry="author"><h3>Author</h3>
+            <p>SUMOscape was written by <b>Atreya Paturi</b> (Pichler Group, ETH Zurich). It builds on the SUMO Site Map app and takes its layout and help system from the Ribosome SUMO Viewer (Bernhard Buss, ETH Zurich).</p>
+            <p>When you use SUMOscape, please cite the data source: Hendriks IA et al., Nat Commun 9:2456 (2018), doi:10.1038/s41467-018-04957-4, and name the SUMOscape version (top right).</p></article>
+          <article data-entry="licence"><h3>Licence</h3>
+            <p>SUMOscape is open source under the MIT licence: © 2026 Pichler Group, ETH Zurich; author Atreya Paturi. Anyone may use, copy, modify and share it, provided the copyright notice and the licence text are kept. See the file <code>LICENSE</code> next to this page.</p>
+            <p>Third-party data keep their own licences: Hendriks et al. 2018 supplementary data (CC BY 4.0), UniProt (CC BY 4.0), InterPro/Pfam (CC0), AlphaFold DB (CC BY 4.0). Mol* is MIT-licensed.</p></article>
+          <article data-entry="versions"><h3>Versions</h3>
+            <p>The version next to the title is raised with every change of what the viewer can do: the minor number for new features, the patch number for fixes. The <a data-help="changelog" href="#help/changelog">Changelog</a> lists what changed for the user; a <i>new</i> badge shows once after an update.</p></article>
+          <article data-entry="roadmap"><h3>Roadmap</h3>
+            <ul>
+              <li><b>SUMO-conjugate structures</b>: for each site, predict the structure with SUMO2 attached (Boltz-2 / AlphaFold 3 / Chai-1), and compare with the unmodified model — RMSD of the protein, change in pLDDT and PAE around the site, solvent accessibility, new contacts of SUMO, and whether the SUMO can sit there at all (room-for-SUMO test as in the Ribosome SUMO Viewer).</li>
+              <li>PDB entries and complexes besides the AlphaFold monomer.</li>
+              <li>More datasets (further site-level SUMO proteomics studies) through the dataset format.</li>
+            </ul></article>
+        </section>
+
+        <section data-topic="changelog" data-title="Changelog" hidden>
+          <div id="changelog"><p class="dim">Loading CHANGELOG.md…</p></div>
+        </section>
+      </div>
+    </div>
+  </div>
+</dialog>
+
+<script>
+"use strict";
+const VERSION = "0.3.1";
+const MAX_ADD = 60;
+const PSI = new Set("AILMFVP");
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const fmt = (v, d = 2) => v == null || Number.isNaN(+v) ? "–" : (+v).toFixed(d);
+const fmtq = v => v == null ? "–" : v < 0.001 ? (+v).toExponential(1) : (+v).toPrecision(2);
+const getJSON = async url => { const r = await fetch(url); if (!r.ok) throw new Error(`${url}: ${r.status}`); return r.json(); };
+const PALETTE = ["#4477AA", "#EE6677", "#228833", "#CCBB44", "#66CCEE", "#AA3377", "#332288", "#117733", "#882255", "#999933", "#44AA99", "#DDCC77", "#CC6677", "#88CCEE", "#AA4499"];
+
+// ---------------------------------------------------------------- feature styling
+const FCOL = {
+  "Domain": "#4477AA", "Repeat": "#66CCEE", "Zinc finger": "#228833", "DNA binding": "#CCBB44", "Coiled coil": "#AA3377",
+  "Pfam": "#44AA99", "Region": "#BBBBBB", "Disordered": "#E2E2E2", "Motif": "#EE6677", "Compositional bias": "#DDCC77",
+  "Topological domain": "#99DDFF", "Transmembrane": "#332288", "Intramembrane": "#6699CC", "Signal": "#882255", "Transit peptide": "#AA4499",
+  "Propeptide": "#DDDDAA", "Peptide": "#117733",
+  "Active site": "#CC3311", "Binding site": "#EE7733", "Site": "#999933", "Modified residue": "#009988", "Cross-link": "#AA3377",
+  "Lipidation": "#BBBB55", "Glycosylation": "#77AADD",
+};
+const TRACKS = [
+  { id: "domains", label: "Domains", types: ["Domain", "Repeat", "Zinc finger", "DNA binding", "Coiled coil"] },
+  { id: "pfam", label: "Pfam (InterPro)", pfam: true },
+  { id: "regions", label: "Regions & motifs", types: ["Region", "Motif", "Compositional bias"] },
+  { id: "topology", label: "Topology & processing", types: ["Topological domain", "Transmembrane", "Intramembrane", "Signal", "Transit peptide", "Propeptide", "Peptide"] },
+  { id: "ptm", label: "Sites & lysine PTMs", types: ["Active site", "Binding site", "Site", "Modified residue", "Cross-link", "Lipidation", "Glycosylation"], point: true },
+  { id: "lys", label: "Lysines", lys: true },
+];
+const KEEP_TYPES = new Set(TRACKS.flatMap(t => t.types || []));
+const featColour = f => f.type === "Region" && /disorder/i.test(f.label) ? FCOL.Disordered : (FCOL[f.type] || "#AAAAAA");
+const lum = hex => { const n = parseInt(hex.slice(1), 16); return (0.299 * (n >> 16) + 0.587 * ((n >> 8) & 255) + 0.114 * (n & 255)) / 255; };
+
+const MOTIFS = { psiKxE: ["ψKxE", "#CC3311"], KxE: ["KxE", "#EE7733"], inv: ["[ED]xK", "#009988"], none: ["none", "#BBBBBB"] };
+const CELLS = { 3: ["3 cell lines", "#332288"], 2: ["2 cell lines", "#6699CC"], 1: ["1 cell line", "#99DDFF"], 0: ["not detected", "#DDDDDD"] };
+const KNOWN = { sumo: ["SUMO in UniProt", "#AA3377"], other: ["other lysine PTM", "#009988"], novel: ["not in UniProt", "#BBBBBB"] };
+const CONTEXT = { domain: ["in a domain", "#4477AA"], disordered: ["disordered region", "#CCBB44"], other: ["elsewhere", "#BBBBBB"] };
+const COLOURINGS = [["cond", "Condition"], ["z", "Z-score"], ["motif", "Motif"], ["cells", "Cell lines"], ["known", "Known in UniProt"], ["context", "Domain context"]];
+
+// ---------------------------------------------------------------- state
+let DSI = null, ds = null, T = null, N = 0, ZMAX = 1.4, MANIFEST = {};
+let byAcc = new Map(), INDEX = [], idxByAcc = new Map(), geneIdx = new Map();
+const protCache = new Map(), protReady = new Map();
+let added = [], active = null;
+const S = { tab: "map", conds: new Set(), colour: "cond", labels: "auto", size: "comfortable", hide: new Set(), x: null, y: null, site: null, stcol: null, sort: null };
+const zoomOf = new Map();
+const tipStore = [];
+let tableRows = [];
+
+// ---------------------------------------------------------------- utilities
+const measureCtx = document.createElement("canvas").getContext("2d");
+function textW(t, size = 10, weight = "") { measureCtx.font = `${weight} ${size}px ${famCSS()}`; return measureCtx.measureText(t).width; }
+
+// ---------------------------------------------------------------- figure text: fonts of the views and of the downloaded figures
+const FONT_FAMILIES = {
+  "Helvetica / Arial": "Helvetica, Arial, sans-serif", "Arial": "Arial, Helvetica, sans-serif", "Calibri": "Calibri, Carlito, Arial, sans-serif",
+  "Verdana": "Verdana, Geneva, sans-serif", "Times New Roman": "'Times New Roman', Times, serif", "Georgia": "Georgia, 'Times New Roman', serif",
+  "Courier New": "'Courier New', Courier, monospace", "System UI": "-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif",
+};
+const FONT_ROLES = {
+  site: { label: "Site labels", def: 9, hint: "K524 at the lollipop heads; site names in the landscape and the heatmap" },
+  axis: { label: "Axis", def: 9.5, hint: "tick numbers, axis titles, residue letters, colour-scale numbers" },
+  chart: { label: "Chart labels", def: 10, hint: "condition and track names, domain labels, quadrant names, headers" },
+};
+const FONT_PRESETS = {
+  "Screen (default)": { family: "Helvetica / Arial", dark: false, site: [9, 0, 0], axis: [9.5, 0, 0], chart: [10, 0, 0] },
+  "Journal, 7 pt": { family: "Arial", dark: true, site: [7, 0, 0], axis: [7, 0, 0], chart: [7, 0, 0] },
+  "Presentation": { family: "Helvetica / Arial", dark: true, site: [12, 0, 0], axis: [12, 0, 0], chart: [13, 1, 0] },
+  "Poster": { family: "Helvetica / Arial", dark: true, site: [15, 1, 0], axis: [15, 0, 0], chart: [17, 1, 0] },
+};
+function fontsFromPreset(name) {
+  const pr = FONT_PRESETS[name], f = { family: pr.family, dark: pr.dark };
+  for (const r of Object.keys(FONT_ROLES)) f[r] = { size: pr[r][0], bold: !!pr[r][1], italic: !!pr[r][2] };
+  return f;
+}
+let FONTS = fontsFromPreset("Screen (default)");
+try { const s = JSON.parse(localStorage.getItem("sumoscape.fonts") || "null"); if (s && s.site && s.axis && s.chart && FONT_FAMILIES[s.family]) FONTS = s; } catch (e) {}
+const famCSS = () => FONT_FAMILIES[FONTS.family] || FONT_FAMILIES["Helvetica / Arial"];
+const fz = (role, base) => +(base * FONTS[role].size / FONT_ROLES[role].def).toFixed(2);   // a size of the role, scaled
+function F(role, base, weight = 400) {   // the font attributes of one text element of a role
+  const r = FONTS[role];
+  return `font-size="${fz(role, base)}" font-weight="${r.bold ? 700 : weight}"${r.italic ? ' font-style="italic"' : ""}`;
+}
+const FC = (role, grey) => FONTS.dark ? "#000000" : grey;   // grey text turns black with "black text"
+function computeML() {   // left margin: room for the longest condition or track name
+  const conds = ds ? ds.conditions.filter(c => S.conds.has(c.id)) : [];
+  const w = Math.max(0, ...conds.map(c => textW(c.label, fz("chart", 12), 700)), ...TRACKS.map(t => textW(t.label, fz("chart", 10), FONTS.chart.bold ? 700 : "")));
+  return Math.max(104, Math.ceil(w + 8 + 10 + textW("+2", fz("axis", 9)) + 6));
+}
+function toast(msg, ms = 2600) { const t = $("toast"); t.textContent = msg; t.hidden = false; clearTimeout(toast._t); toast._t = setTimeout(() => t.hidden = true, ms); }
+function tipId(html) { tipStore.push(html); return tipStore.length - 1; }
+function download(name, blob) { const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = name; document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 500); }
+function zColour(z) {   // blue - white - red, symmetric on ZMAX
+  if (z == null) return "#CCCCCC";
+  const t = Math.max(-1, Math.min(1, z / ZMAX)), a = [68, 119, 170], w = [247, 247, 247], b = [204, 51, 17];
+  const c = t < 0 ? a.map((v, i) => Math.round(w[i] + (v - w[i]) * -t)) : b.map((v, i) => Math.round(w[i] + (v - w[i]) * t));
+  return "#" + c.map(v => v.toString(16).padStart(2, "0")).join("");   // hex: MolViewSpec accepts no rgb()
+}
+function motifAt(seq, pos) {
+  if (!seq || seq[pos - 1] !== "K") return "none";
+  const plus2 = seq[pos + 1], minus1 = seq[pos - 2], minus2 = seq[pos - 3];
+  if (plus2 === "E") return PSI.has(minus1) ? "psiKxE" : "KxE";
+  if (minus2 === "E" || minus2 === "D") return "inv";
+  return "none";
+}
+function seqWindow(seq, pos, flank = 10) {
+  if (!seq || pos < 1 || pos > seq.length) return "";
+  const a = Math.max(1, pos - flank), b = Math.min(seq.length, pos + flank);
+  return (a > 1 ? "…" : "") + esc(seq.slice(a - 1, pos - 1)) + "<b>" + esc(seq[pos - 1]) + "</b>" + esc(seq.slice(pos, b)) + (b < seq.length ? "…" : "");
+}
+function mapSegment(src, dst, s, e) {
+  if (src === dst) return [s, e];
+  const seg = src.slice(s - 1, e);
+  if (seg.length >= 8) { const i = dst.indexOf(seg); return i >= 0 && dst.indexOf(seg, i + 1) < 0 ? [i + 1, i + seg.length] : null; }
+  const a = Math.max(0, s - 7), b = Math.min(src.length, e + 6), ctx = src.slice(a, b), i = dst.indexOf(ctx);
+  if (i >= 0 && dst.indexOf(ctx, i + 1) < 0) { const off = s - 1 - a; return [i + off + 1, i + off + seg.length]; }
+  return null;
+}
+
+// ---------------------------------------------------------------- datasets
+async function loadDataset(id, keep = {}) {
+  ds = DSI.datasets.find(d => d.id === id) || DSI.datasets.find(d => d.id === DSI.default) || DSI.datasets[0];
+  const js = ds.user ? ds.data : await getJSON("data/" + ds.file);
+  T = js.columns; N = js.n;
+  byAcc = new Map();
+  T.acc.forEach((a, i) => { let l = byAcc.get(a); if (!l) byAcc.set(a, l = []); l.push(i); });
+  for (const l of byAcc.values()) l.sort((i, j) => T.pos[i] - T.pos[j]);
+  let m = 0;
+  for (const c of ds.conditions) for (const v of T[c.z] || []) if (v != null && Math.abs(v) > m) m = Math.abs(v);
+  ZMAX = Math.max(0.5, Math.ceil(m * 10 + 0.5) / 10);
+  const ids = ds.conditions.map(c => c.id);
+  S.conds = new Set(keep.c ? keep.c.filter(c => ids.includes(c)) : ids);
+  if (!S.conds.size) S.conds = new Set(ids);
+  const def = (a, b) => ids.includes(a) && ids.includes(b) ? [a, b] : [ids[Math.min(1, ids.length - 1)], ids[Math.min(2, ids.length - 1)]];
+  [S.x, S.y] = def("mg132", "hs");
+  if (keep.x && ids.includes(keep.x)) S.x = keep.x;
+  if (keep.y && ids.includes(keep.y)) S.y = keep.y;
+  S.stcol = ids.includes("mg132") ? "z:mg132" : "z:" + ids[0];
+  if (!(ds.detection || []).length && S.colour === "cells") S.colour = "cond";
+  $("dataset").value = ds.id;
+  $("dsinfo").innerHTML = `${esc(ds.description || "")} ${ds.doi ? `<a href="https://doi.org/${ds.doi}" target="_blank" rel="noopener">${esc(ds.source)}</a>` : esc(ds.source || "")}`;
+  bgCache = null;
+}
+function siteObj(i) {
+  const o = { i, acc: T.acc[i], gene: T.gene ? T.gene[i] : null, pos: T.pos[i], z: {}, q: {}, lfc: {}, present: {} };
+  for (const c of ds.conditions) {
+    o.z[c.id] = T[c.z] ? T[c.z][i] : null;
+    if (c.q && T[c.q]) o.q[c.id] = T[c.q][i];
+    if (c.lfc && T[c.lfc]) o.lfc[c.id] = T[c.lfc][i];
+    if (c.present && T[c.present]) o.present[c.id] = !!T[c.present][i];
+  }
+  o.cells = (ds.detection || []).filter(k => T[k] && T[k][i]);
+  o.label = `${o.gene || o.acc} K${o.pos}`;
+  return o;
+}
+const sitesOf = acc => (byAcc.get(acc) || []).map(siteObj);
+const condById = id => ds.conditions.find(c => c.id === id);
+function isSig(s, cid) {
+  const c = condById(cid);
+  if (c && c.q) { const q = s.q[cid]; if (c.present && !s.present[cid]) return false; return q != null && q < 0.05; }
+  return Object.values(s.q).some(q => q != null && q < 0.05);   // condition without a test: any
+}
+const anySig = s => Object.values(s.q).some(q => q != null && q < 0.05);
+
+// ---------------------------------------------------------------- proteins
+function indexRow(acc) { return idxByAcc.get(acc); }
+function nSitesIn(acc) { return (byAcc.get(acc) || []).length; }
+async function liveProtein(acc) {
+  const parse = e => {
+    const feats = [];
+    for (const f of e.features || []) {
+      if (!KEEP_TYPES.has(f.type)) continue;
+      const s = f.location?.start?.value, en = f.location?.end?.value, d = f.description || "";
+      if (s == null || en == null) continue;
+      if ((f.type === "Modified residue" || f.type === "Glycosylation") && !/lysine/i.test(d)) continue;
+      feats.push([f.type, s, en, d]);
+    }
+    return { seq: e.sequence?.value || "", feats, gene: e.genes?.[0]?.geneName?.value, name: e.proteinDescription?.recommendedName?.fullName?.value || e.proteinDescription?.submissionNames?.[0]?.fullName?.value, organism: e.organism?.scientificName };
+  };
+  const base = acc.split("-")[0];
+  const e = parse(await getJSON(`https://rest.uniprot.org/uniprotkb/${acc}.json`));
+  let feats = e.feats, mapped = false, srcSeq = e.seq;
+  if (acc !== base) {
+    const c = parse(await getJSON(`https://rest.uniprot.org/uniprotkb/${base}.json`));
+    srcSeq = c.seq; mapped = true;
+    feats = c.feats.map(([t, s, en, d]) => { const m = mapSegment(c.seq, e.seq, s, en); return m ? [t, m[0], m[1], d] : null; }).filter(Boolean);
+    e.gene = e.gene || c.gene; e.name = e.name || c.name;
+  }
+  return { acc, canonical: base, gene: e.gene, name: e.name, organism: e.organism, seq: e.seq, length: e.seq.length, features: feats, pfam: null, srcSeq, mapped, live: true,
+           note: mapped ? `Isoform: annotation of the canonical entry ${base} mapped by sequence.` : null };
+}
+async function livePfam(P) {
+  try {
+    const r = await fetch(`https://www.ebi.ac.uk/interpro/api/entry/pfam/protein/uniprot/${P.canonical}?page_size=200`);
+    if (r.status === 204) return [];
+    if (!r.ok) return null;
+    const js = await r.json(), out = [];
+    for (const res of js.results || []) for (const p of res.proteins || []) for (const loc of p.entry_protein_locations || []) for (const fr of loc.fragments || [])
+      out.push([res.metadata.accession, res.metadata.name, +fr.start, +fr.end]);
+    if (P.srcSeq && P.srcSeq !== P.seq) return out.map(([a, n, s, e]) => { const m = mapSegment(P.srcSeq, P.seq, s, e); return m ? [a, n, m[0], m[1]] : null; }).filter(Boolean);
+    return out.sort((a, b) => a[2] - b[2]);
+  } catch (e) { return null; }
+}
+function enrich(P) {
+  P.feats = (P.features || []).map(([type, s, e, label]) => ({ type, s, e, label: label || type }));
+  P.pfams = (P.pfam || []).map(([id, name, s, e]) => ({ type: "Pfam", s, e, label: name || id, id }));
+  P.lys = [];
+  for (let i = 0; i < (P.seq || "").length; i++) if (P.seq[i] === "K") P.lys.push(i + 1);
+  return P;
+}
+function getProtein(acc) {
+  if (!protCache.has(acc)) protCache.set(acc, (async () => {
+    let P = null;
+    if (idxByAcc.has(acc)) { try { P = await getJSON(`data/proteins/${acc}.json`); } catch (e) { P = null; } }
+    if (!P) P = await liveProtein(acc);
+    if (P.pfam == null || (P.live && !P.pfam)) P.pfam = await livePfam(P) || [];
+    P = enrich(P);
+    protReady.set(acc, P);
+    return P;
+  })().catch(err => { protCache.delete(acc); throw err; }));
+  return protCache.get(acc);
+}
+async function resolveQuery(q) {
+  q = q.trim(); if (!q) return null;
+  const up = q.toUpperCase();
+  if (idxByAcc.has(up)) return up;
+  const hits = geneIdx.get(up);
+  if (hits && hits.length) {   // prefer the accession with sites in the current dataset, then the canonical
+    const ranked = hits.slice().sort((a, b) => (nSitesIn(b) - nSitesIn(a)) || (a.includes("-") - b.includes("-")));
+    return ranked[0];
+  }
+  if (/^([OPQ][0-9][A-Z0-9]{3}[0-9]|[A-NR-Z][0-9]([A-Z][A-Z0-9]{2}[0-9]){1,2})(-\d+)?$/.test(up)) return up;
+  const org = ds.organism === "Mus musculus" ? 10090 : 9606;
+  try {
+    const js = await getJSON(`https://rest.uniprot.org/uniprotkb/search?query=${encodeURIComponent(`gene_exact:${q} AND organism_id:${org} AND reviewed:true`)}&fields=accession&size=1&format=json`);
+    return js.results?.[0]?.primaryAccession || null;
+  } catch (e) { return null; }
+}
+async function addProteins(list, { activate = true, quiet = false } = {}) {
+  const fresh = [], bad = [];
+  for (const q of list) {
+    if (added.length + fresh.length >= MAX_ADD) { toast(`At most ${MAX_ADD} proteins at once.`); break; }
+    const acc = await resolveQuery(q);
+    if (!acc) { bad.push(q); continue; }
+    if (!added.includes(acc) && !fresh.includes(acc)) fresh.push(acc);
+  }
+  added.push(...fresh);
+  if (activate && fresh.length) active = fresh[fresh.length - 1];
+  if (!active && added.length) active = added[0];
+  if (bad.length && !quiet) toast(`Not found: ${bad.slice(0, 8).join(", ")}${bad.length > 8 ? " …" : ""}`, 4200);
+  await Promise.all(fresh.map(a => getProtein(a).catch(() => { bad.push(a); added = added.filter(x => x !== a); toast(`${a} could not be loaded from UniProt.`); })));
+  renderAll();
+  return fresh;
+}
+function removeProtein(acc) {
+  added = added.filter(a => a !== acc); zoomOf.delete(acc);
+  if (active === acc) active = added[0] || null;
+  if (S.site && S.site.acc === acc) S.site = null;
+  renderAll();
+}
+function setActive(acc) { if (acc === active) return; active = acc; renderAll(); }
+const protColour = acc => PALETTE[Math.max(0, added.indexOf(acc)) % PALETTE.length];
+
+// ---------------------------------------------------------------- site colouring
+function siteKey(s, P) {      // the legend entry a site falls under in the current colouring (non-ramp)
+  switch (S.colour) {
+    case "motif": return motifAt(P && P.seq, s.pos);
+    case "cells": return String(s.cells.length);
+    case "known": return knownAt(P, s.pos);
+    case "context": return contextAt(P, s.pos);
+    default: return null;
+  }
+}
+function knownAt(P, pos) {
+  if (!P) return "novel";
+  let other = false;
+  for (const f of P.feats) if (f.s === pos || f.e === pos) {
+    if (f.type === "Cross-link" && /SUMO/i.test(f.label)) return "sumo";
+    if (f.type === "Cross-link" || f.type === "Modified residue" || f.type === "Glycosylation" || f.type === "Lipidation") other = true;
+  }
+  return other ? "other" : "novel";
+}
+function coveringFeatures(P, pos) {
+  if (!P) return [];
+  return P.feats.filter(f => f.s <= pos && pos <= f.e && !TRACKS.find(t => t.id === "ptm").types.includes(f.type)).concat(P.pfams.filter(f => f.s <= pos && pos <= f.e));
+}
+function contextAt(P, pos) {
+  const cov = coveringFeatures(P, pos);
+  if (cov.some(f => ["Domain", "Repeat", "Zinc finger", "DNA binding", "Pfam"].includes(f.type))) return "domain";
+  if (cov.some(f => f.type === "Region" && /disorder/i.test(f.label))) return "disordered";
+  return "other";
+}
+function legendDef() {
+  switch (S.colour) {
+    case "motif": return MOTIFS;
+    case "cells": return CELLS;
+    case "known": return KNOWN;
+    case "context": return CONTEXT;
+    default: return null;
+  }
+}
+function siteHidden(s, P) { const k = siteKey(s, P); return k != null && S.hide.has(`site:${S.colour}:${k}`); }
+function siteFill(s, cid, P) {   // [fill, stroke]
+  const c = condById(cid);
+  if (c.present && !s.present[cid]) return ["#FFFFFF", "#B5B5B5"];
+  if (S.colour === "cond") { const col = c.colour || "#4477AA"; return isSig(s, cid) ? [col, col] : ["#FFFFFF", col]; }
+  if (S.colour === "z") { const z = s.z[cid]; return [zColour(z), isSig(s, cid) ? "#333" : "#999"]; }
+  const def = legendDef(), k = siteKey(s, P), col = def[k] ? def[k][1] : "#BBBBBB";
+  return [col, isSig(s, cid) ? "#333" : "#FFFFFF"];
+}
+
+// ---------------------------------------------------------------- lollipop site map
+let ML = 104; const MR = 18;
+function panelH() { return S.size === "compact" ? 74 : 122; }
+function niceTicks(a, b, n = 8) {
+  const span = b - a, step0 = span / n, mag = Math.pow(10, Math.floor(Math.log10(step0))), r = step0 / mag;
+  const step = (r < 1.5 ? 1 : r < 3 ? 2 : r < 7 ? 5 : 10) * mag, out = [];
+  for (let v = Math.ceil(a / step) * step; v <= b; v += step) out.push(Math.round(v));
+  return out;
+}
+function protLength(acc, P) { return Math.max(P ? P.length || (P.seq || "").length : 0, ...sitesOf(acc).map(s => s.pos), 10); }
+function packLanes(items, X, gap = 2) {
+  const lanes = [];
+  for (const it of items.slice().sort((a, b) => a.s - b.s || b.e - a.e)) {
+    const x0 = X(it.s - 0.5);
+    let k = lanes.findIndex(end => end + gap <= x0);
+    if (k < 0) { k = lanes.length; lanes.push(0); }
+    lanes[k] = X(it.e + 0.5); it.lane = k;
+  }
+  return lanes.length;
+}
+function buildMapSVG(acc, P, W) {
+  const sites = sitesOf(acc), L = protLength(acc, P);
+  const [x0, x1] = zoomOf.get(acc) || [0.5, L + 0.5];
+  ML = computeML();
+  const pw = W - ML - MR, X = p => ML + (p - x0) / (x1 - x0) * pw;
+  X.right = ML + pw;
+  const inView = p => p >= x0 && p <= x1;
+  const conds = ds.conditions.filter(c => S.conds.has(c.id));
+  const PH = panelH(), parts = [], defs = [], clipId = "c" + acc.replace(/\W/g, "");
+  const selPos = S.site && S.site.acc === acc ? S.site.pos : null;
+  const ZS = v => v / ZMAX;
+  let y = 6 + Math.max(0, Math.round(fz("site", 9) * 1.7 - 10));   // room above the first panel for rotated site labels
+  // ----- condition panels
+  for (const c of conds) {
+    const mid = y + PH / 2, h = PH / 2 - 14, Y = z => mid - ZS(z) * h;
+    parts.push(`<rect x="${ML}" y="${y}" width="${pw}" height="${PH}" fill="#FBFBFC" stroke="#EEF0F3"/>`);
+    for (const t of [-1, 1].map(k => k * Math.floor(ZMAX))) if (t) parts.push(`<line x1="${ML}" x2="${ML + pw}" y1="${Y(t)}" y2="${Y(t)}" stroke="#ECEEF2" stroke-dasharray="3 3"/><text x="${ML - 5}" y="${Y(t) + 3}" ${F("axis", 9)} fill="${FC("axis", "#8A929E")}" text-anchor="end">${t > 0 ? "+" : ""}${t}</text>`);
+    parts.push(`<text x="${ML - 5}" y="${mid + 3}" ${F("axis", 9)} fill="${FC("axis", "#8A929E")}" text-anchor="end">0</text>`);
+    parts.push(`<text x="8" y="${mid - 3}" ${F("chart", 12, 700)} fill="${c.colour || "#333"}">${esc(c.label)}</text><text x="8" y="${mid + 2 + fz("axis", 9.5)}" ${F("axis", 9.5)} fill="${FC("axis", "#8A929E")}">Z-score</text>`);
+    parts.push(`<g clip-path="url(#${clipId})">`);
+    parts.push(`<line x1="${X(1)}" x2="${X(L)}" y1="${mid}" y2="${mid}" stroke="#4A4F57" stroke-width="3" stroke-linecap="round"/>`);
+    const shown = sites.filter(s => inView(s.pos) && !siteHidden(s, P));
+    const labels = [];
+    for (const s of shown) {
+      const z = s.z[c.id], x = X(s.pos);
+      if (z == null) {
+        const t = tipId(`<b>${esc(s.label)}</b><br><span class="dim">not quantified in ${esc(c.label)}</span>`);
+        parts.push(`<circle class="site" data-acc="${acc}" data-pos="${s.pos}" data-t="${t}" cx="${x}" cy="${mid}" r="2.6" fill="#fff" stroke="#AAA"/>`);
+        continue;
+      }
+      const yy = Y(z), [fill, stroke] = siteFill(s, c.id, P), sel = s.pos === selPos;
+      const t = tipId(siteTip(s, c, P));
+      parts.push(`<line x1="${x}" x2="${x}" y1="${mid}" y2="${yy}" stroke="${sel ? "#333" : "#A9AFB8"}" stroke-width="${sel ? 1.8 : 1.1}"/>`);
+      parts.push(`<circle class="site" data-acc="${acc}" data-pos="${s.pos}" data-t="${t}" cx="${x}" cy="${yy}" r="${sel ? 6 : 4.6}" fill="${fill}" stroke="${sel ? "#111" : stroke}" stroke-width="${sel ? 2 : 1.3}"/>`);
+      const want = S.labels === "all" || sel || (S.labels === "sig" && isSig(s, c.id)) || S.labels === "auto";
+      if (want && S.labels !== "none" || sel) labels.push({ x, y: yy, up: z >= 0, text: `K${s.pos}`, pri: sel ? 99 : (isSig(s, c.id) ? 2 : 0) + Math.abs(z), sel });
+    }
+    // labels: rotated at the stem tip; 'auto' drops those that would collide
+    const placed = { true: [], false: [] };
+    for (const l of labels.sort((a, b) => b.pri - a.pri)) {
+      const row = placed[l.up];
+      if (S.labels === "auto" && !l.sel && row.some(o => Math.abs(o - l.x) < fz("site", 9) + 1.5)) continue;
+      row.push(l.x);
+      const ly = l.up ? l.y - 8 : l.y + 8, rot = l.up ? -55 : 55;
+      parts.push(`<text x="${l.x}" y="${ly}" ${F("site", l.sel ? 10.5 : 9, l.sel ? 700 : 400)} fill="${l.sel ? "#111" : FC("site", "#4B5361")}" transform="rotate(${rot} ${l.x} ${ly})">${l.text}</text>`);
+    }
+    parts.push(`</g>`);
+    y += PH + 8;
+  }
+  // ----- annotation tracks
+  const trackTop = y;
+  for (const tr of TRACKS) {
+    if (S.hide.has("track:" + tr.id) || !P) continue;
+    if (tr.lys) {
+      const LH = 12, lysIn = P.lys.filter(inView), siteSet = new Set(sites.map(s => s.pos));
+      parts.push(trackLabel(tr.label, y + 9));
+      parts.push(`<g clip-path="url(#${clipId})">`);
+      parts.push(`<line x1="${X(1)}" x2="${X(L)}" y1="${y + LH / 2}" y2="${y + LH / 2}" stroke="#E4E6EA"/>`);
+      const dense = lysIn.length > pw / 1.5;
+      for (const p of lysIn) {
+        const has = siteSet.has(p), m = motifAt(P.seq, p), x = X(p);
+        if (dense && !has) continue;
+        parts.push(`<line x1="${x}" x2="${x}" y1="${y + (has ? 0 : 3)}" y2="${y + LH - (has ? 0 : 3)}" stroke="${has ? "#2B2F36" : "#B8BEC7"}" stroke-width="${has ? 1.6 : 1}"/>`);
+        if (m !== "none") parts.push(`<rect x="${x - 1.5}" y="${y + LH + 1}" width="3" height="3" fill="${MOTIFS[m][1]}"/>`);
+      }
+      parts.push(`</g>`);
+      y += LH + 8;
+      continue;
+    }
+    let items = tr.pfam ? P.pfams.map(f => ({ ...f })) : P.feats.filter(f => tr.types.includes(f.type)).map(f => ({ ...f }));
+    items = items.filter(f => f.e >= x0 && f.s <= x1);
+    if (!items.length) continue;
+    if (tr.point) { y = pointTrack(tr, items, X, y, parts, clipId); continue; }
+    const nl = packLanes(items, X), FS = fz("chart", 9.5), LH = Math.max(13, FS + 4), RH = Math.max(11, FS + 2);
+    parts.push(trackLabel(tr.label, y + 10));
+    parts.push(`<g clip-path="url(#${clipId})">`);
+    let yy = y;
+    for (let lane = 0; lane < nl; lane++) {
+      const li = items.filter(f => f.lane === lane), callouts = [];
+      for (const f of li) {
+        const a = Math.max(ML, X(f.s - 0.5)), b = Math.min(ML + pw, X(f.e + 0.5)), w = Math.max(2, b - a), col = featColour(f);
+        const t = tipId(`<b>${esc(f.label)}</b><br>${esc(f.type === "Pfam" ? `Pfam ${f.id}` : f.type)} · ${f.s}–${f.e} (${f.e - f.s + 1} aa)<br><span class="dim">${f.type === "Pfam" ? "InterPro" : "UniProt"}</span>`);
+        parts.push(`<rect class="feat" data-t="${t}" x="${a}" y="${yy}" width="${w}" height="${LH}" rx="3" fill="${col}" stroke="${f.type === "Region" ? "#A5ABB4" : "none"}" stroke-width="0.6"/>`);
+        const tw = textW(f.label, FS, FONTS.chart.bold ? 700 : "");
+        if (tw + 6 <= w) parts.push(`<text x="${a + w / 2}" y="${yy + LH / 2 + FS * 0.36}" ${F("chart", 9.5)} text-anchor="middle" fill="${lum(col) < 0.55 ? "#fff" : "#1F2328"}" pointer-events="none">${esc(f.label)}</text>`);
+        else callouts.push({ cx: a + w / 2, tw, f, t });
+      }
+      // every feature carries a label: those that do not fit go in rows underneath, with a leader line
+      const rows = [];
+      for (const c of callouts.sort((p, q) => p.cx - q.cx)) {
+        const lx = Math.min(Math.max(c.cx, ML + c.tw / 2 + 1), ML + pw - c.tw / 2 - 1), lo = lx - c.tw / 2 - 3, hi = lx + c.tw / 2 + 3;
+        let r = rows.findIndex(end => end <= lo);
+        if (r < 0) { r = rows.length; rows.push(-1e9); }
+        rows[r] = hi; c.lx = lx; c.row = r;
+      }
+      const base = yy + LH;
+      for (const c of callouts) {
+        const ty = base + FS + 1 + c.row * RH;
+        parts.push(`<line x1="${c.cx}" y1="${base}" x2="${c.lx}" y2="${ty - FS * 0.85}" stroke="#9AA1AC" stroke-width="0.7"/>`);
+        parts.push(`<text class="feat" data-t="${c.t}" x="${c.lx}" y="${ty}" ${F("chart", 9.5)} text-anchor="middle" fill="${FC("chart", "#3A404A")}">${esc(c.f.label)}</text>`);
+      }
+      yy = base + (rows.length ? rows.length * RH + 3 : 0) + 3;
+    }
+    parts.push(`</g>`);
+    y = yy + 6;
+  }
+  // ----- axis
+  const span = x1 - x0, axisTop = y;
+  parts.push(`<line x1="${ML}" x2="${ML + pw}" y1="${y + 2}" y2="${y + 2}" stroke="#9AA1AC"/>`);
+  if (span <= 110 && P && P.seq) {
+    for (let p = Math.ceil(x0); p <= Math.floor(x1); p++) {
+      const ch = P.seq[p - 1] || "";
+      parts.push(`<text x="${X(p)}" y="${y + 4 + fz("axis", 10)}" ${F("axis", 10, ch === "K" ? 700 : 400)} font-family="ui-monospace, Menlo, 'Courier New', monospace" text-anchor="middle" fill="${ch === "K" ? "#CC3311" : FC("axis", "#4B5361")}">${ch}</text>`);
+      if (p % 10 === 0) parts.push(`<text x="${X(p)}" y="${y + 6 + fz("axis", 10) + fz("axis", 8.5)}" ${F("axis", 8.5)} text-anchor="middle" fill="${FC("axis", "#8A929E")}">${p}</text>`);
+    }
+  } else {
+    for (const t of niceTicks(Math.max(1, x0), Math.min(L, x1))) parts.push(`<line x1="${X(t)}" x2="${X(t)}" y1="${y + 2}" y2="${y + 6}" stroke="#9AA1AC"/><text x="${X(t)}" y="${y + 6 + fz("axis", 9.5)}" ${F("axis", 9.5)} text-anchor="middle" fill="${FC("axis", "#5B6370")}">${t}</text>`);
+  }
+  parts.push(`<text x="${ML + pw}" y="${y + 10 + fz("axis", 10) + fz("axis", 9.5) * 1.3}" ${F("axis", 9.5)} text-anchor="end" fill="${FC("axis", "#8A929E")}">Residue position${span < L ? ` · ${Math.max(1, Math.round(x0))}–${Math.min(L, Math.round(x1))} of ${L}` : ` · ${L} aa`}</text>`);
+  y += 16 + fz("axis", 10) + fz("axis", 9.5) * 1.3;
+  if (selPos != null && inView(selPos)) parts.splice(0, 0, `<line x1="${X(selPos)}" x2="${X(selPos)}" y1="4" y2="${axisTop}" stroke="#332288" stroke-dasharray="4 3" stroke-width="1" opacity=".6"/>`);
+  defs.push(`<clipPath id="${clipId}"><rect x="${ML - 1}" y="0" width="${pw + 2}" height="${y}"/></clipPath>`);
+  void trackTop;
+  return { svg: `<svg class="lolli" data-acc="${acc}" xmlns="http://www.w3.org/2000/svg" width="${W}" height="${y}" viewBox="0 0 ${W} ${y}" font-family="${famCSS()}"><defs>${defs.join("")}</defs>${parts.join("")}</svg>`, height: y };
+}
+function trackLabel(text, y) { return `<text x="8" y="${y}" ${F("chart", 10)} fill="${FC("chart", "#5B6370")}">${esc(text)}</text>`; }
+function pointTrack(tr, items, X, y, parts, clipId) {
+  const LH = 12;
+  parts.push(trackLabel(tr.label, y + 9));
+  parts.push(`<g clip-path="url(#${clipId})">`);
+  const labs = [];
+  for (const f of items.sort((a, b) => a.s - b.s)) {
+    const x = X((f.s + f.e) / 2), col = FCOL[f.type] || "#888";
+    const t = tipId(`<b>${esc(f.type)}</b> · ${f.s === f.e ? f.s : `${f.s}–${f.e}`}<br>${esc(f.label)}<br><span class="dim">UniProt</span>`);
+    const sumo = f.type === "Cross-link" && /SUMO/i.test(f.label);
+    parts.push(`<path class="pfeat" data-t="${t}" d="M${x - 4},${y + LH} L${x + 4},${y + LH} L${x},${y + 2} Z" fill="${col}" stroke="${sumo ? "#111" : "none"}" stroke-width="0.8"/>`);
+    if (sumo) labs.push(x);
+  }
+  let last = -1e9;
+  for (const x0 of labs) { const hw = textW("SUMO", fz("chart", 8.5), FONTS.chart.bold ? 700 : "") / 2 + 1, x = Math.min(Math.max(x0, ML + hw), X.right - hw); if (x - last < textW("SUMO", fz("chart", 8.5)) + 6) continue; parts.push(`<text x="${x}" y="${y + LH + 2 + fz("chart", 8.5)}" ${F("chart", 8.5)} text-anchor="middle" fill="#AA3377">SUMO</text>`); last = x; }
+  parts.push(`</g>`);
+  return y + LH + (labs.length ? fz("chart", 8.5) + 5 : 4) + 4;
+}
+function siteTip(s, c, P) {
+  const rows = ds.conditions.map(k => `${esc(k.label)}: Z ${fmt(s.z[k.id])}${k.lfc ? `, log2FC ${fmt(s.lfc[k.id], 1)}` : ""}${k.q && k.q !== "anova_q" ? `, q ${fmtq(s.q[k.id])}` : ""}${k.present ? (s.present[k.id] ? "" : " (absent)") : ""}`).join("<br>");
+  const m = motifAt(P && P.seq, s.pos), cov = coveringFeatures(P, s.pos).map(f => f.label).filter((v, i, a) => a.indexOf(v) === i).slice(0, 3).join(", ");
+  return `<b>${esc(s.label)}</b> <span class="dim">${esc(s.acc)}</span><br>${rows}<br><span class="dim">motif ${MOTIFS[m][0]}${cov ? " · " + esc(cov) : ""}</span><br><span class="seqwin">${seqWindow(P && P.seq, s.pos, 7)}</span>`;
+}
+function stageWidth() { return Math.max(520, $("mappane").clientWidth - 34); }
+function renderMap() {
+  const wrap = $("mapwrap");
+  tipStore.length = 0;
+  if (!added.length) {
+    wrap.innerHTML = `<div id="empty"><p><b>Add a protein</b> under <i>Proteins</i> at the right — a gene or a UniProt accession, a pasted list, or a selection from <i>Browse all proteins…</i>.</p>
+      <p>Each protein gets one lollipop panel per condition (${ds.conditions.map(c => esc(c.label)).join(", ")}) above tracks with every annotated domain, region, motif and lysine modification.</p>
+      <p>Examples: <a href="#" data-ex="RANGAP1">RANGAP1</a> · <a href="#" data-ex="TOP2A">TOP2A</a> · <a href="#" data-ex="PML">PML</a> · <a href="#" data-ex="TRIM28">TRIM28</a> · <a href="#" data-ex="ZNF451">ZNF451</a> · <a href="#" data-ex="RANGAP1 TOP2A PML SAFB2 ZMYM4">five together</a></p></div>`;
+    return;
+  }
+  const W = stageWidth();
+  wrap.innerHTML = added.map(acc => blockHTML(acc, W)).join("");
+}
+function blockHTML(acc, W) {
+  const P = protReady.get(acc), ir = indexRow(acc);
+  const gene = (P && P.gene) || (ir && ir[1]) || acc, name = (P && P.name) || (ir && ir[2]) || "", n = nSitesIn(acc);
+  const head = `<div class="phead"><span class="g" data-act="${acc}" style="color:${protColour(acc)}">${esc(gene)}</span><span class="n">${esc(acc)} · ${esc(name)} · ${P ? (P.length || P.seq.length) + " aa · " : ""}${n} site${n === 1 ? "" : "s"}</span>
+    <span class="r"><a href="https://www.uniprot.org/uniprotkb/${acc}" target="_blank" rel="noopener">UniProt</a> <button class="btn sm" data-reset="${acc}" title="Whole protein">Reset zoom</button> <button class="btn sm" data-rm="${acc}" title="Remove">×</button></span></div>`;
+  if (!P) return `<div class="pblock" data-block="${acc}">${head}<div class="pnote" style="color:var(--muted)">Loading…</div></div>`;
+  const note = P.note ? `<div class="pnote">${esc(P.note)}</div>` : "", none = !n ? `<div class="pnote" style="color:var(--muted)">No sites of this protein in the current dataset; domains and lysines shown.</div>` : "";
+  return `<div class="pblock${acc === active ? " active" : ""}" data-block="${acc}">${head}${note}${none}${buildMapSVG(acc, P, W).svg}</div>`;
+}
+function rerenderBlock(acc) {
+  const el = document.querySelector(`.pblock[data-block="${CSS.escape(acc)}"]`);
+  if (!el) return;
+  const svg = el.querySelector("svg.lolli"), P = protReady.get(acc);
+  if (!svg || !P) return;
+  const tmp = document.createElement("div"); tmp.innerHTML = buildMapSVG(acc, P, stageWidth()).svg;
+  svg.replaceWith(tmp.firstChild);
+}
+
+// ---------------------------------------------------------------- map interaction (zoom, pan, click, hover)
+function initMapInteraction() {
+  const wrap = $("mapwrap");
+  let drag = null;
+  wrap.addEventListener("wheel", e => {
+    const svg = e.target.closest("svg.lolli"); if (!svg) return;
+    e.preventDefault();
+    const acc = svg.dataset.acc, P = protReady.get(acc), L = protLength(acc, P);
+    const r = svg.getBoundingClientRect(), pw = r.width - ML - MR, fx = Math.min(1, Math.max(0, (e.clientX - r.left - ML) / pw));
+    let [x0, x1] = zoomOf.get(acc) || [0.5, L + 0.5];
+    const p = x0 + fx * (x1 - x0), k = e.deltaY > 0 ? 1.25 : 0.8;
+    let span = Math.min(L, Math.max(20, (x1 - x0) * k));
+    x0 = p - fx * span; x1 = x0 + span;
+    if (x0 < 0.5) { x0 = 0.5; x1 = x0 + span; } if (x1 > L + 0.5) { x1 = L + 0.5; x0 = Math.max(0.5, x1 - span); }
+    if (span >= L) zoomOf.delete(acc); else zoomOf.set(acc, [x0, x1]);
+    scheduleBlock(acc);
+  }, { passive: false });
+  wrap.addEventListener("mousedown", e => {
+    const svg = e.target.closest("svg.lolli"); if (!svg || e.button !== 0) return;
+    const acc = svg.dataset.acc, z = zoomOf.get(acc);
+    drag = { acc, x: e.clientX, moved: false, z: z ? z.slice() : null, w: svg.getBoundingClientRect().width - ML - MR };
+  });
+  window.addEventListener("mousemove", e => {
+    if (drag) {
+      const dx = e.clientX - drag.x;
+      if (Math.abs(dx) > 3) drag.moved = true;
+      if (drag.moved && drag.z) {
+        const P = protReady.get(drag.acc), L = protLength(drag.acc, P), span = drag.z[1] - drag.z[0];
+        let x0 = drag.z[0] - dx / drag.w * span; x0 = Math.max(0.5, Math.min(L + 0.5 - span, x0));
+        zoomOf.set(drag.acc, [x0, x0 + span]); scheduleBlock(drag.acc);
+      }
+    }
+    const t = e.target.closest && e.target.closest("[data-t]");
+    if (t && tipStore[+t.dataset.t] != null && !drag?.moved) showTip(tipStore[+t.dataset.t], e); else if (!e.target.closest?.("#sccanvas, #scsvg .hp")) hideTip();
+  });
+  window.addEventListener("mouseup", () => { if (drag && drag.moved) { drag = null; return; } drag = null; });
+  wrap.addEventListener("click", e => {
+    const ex = e.target.closest("[data-ex]"); if (ex) { e.preventDefault(); addProteins(ex.dataset.ex.split(/\s+/)); return; }
+    const rm = e.target.closest("[data-rm]"); if (rm) { removeProtein(rm.dataset.rm); return; }
+    const rs = e.target.closest("[data-reset]"); if (rs) { zoomOf.delete(rs.dataset.reset); rerenderBlock(rs.dataset.reset); return; }
+    const g = e.target.closest("[data-act]"); if (g) { setActive(g.dataset.act); return; }
+    const c = e.target.closest(".site"); if (c) { selectSite(c.dataset.acc, +c.dataset.pos); return; }
+    const b = e.target.closest(".pblock"); if (b && b.dataset.block !== active && !e.target.closest("svg")) setActive(b.dataset.block);
+  });
+  wrap.addEventListener("dblclick", e => { const svg = e.target.closest("svg.lolli"); if (!svg) return; zoomOf.delete(svg.dataset.acc); rerenderBlock(svg.dataset.acc); });
+}
+const pending = new Set(); let rafOn = false;
+function scheduleBlock(acc) { pending.add(acc); if (rafOn) return; rafOn = true; requestAnimationFrame(() => { rafOn = false; for (const a of pending) rerenderBlock(a); pending.clear(); }); }
+function showTip(html, e) { const t = $("tip"); t.innerHTML = html; t.hidden = false; const r = t.getBoundingClientRect(); let x = e.clientX + 14, y = e.clientY + 14; if (x + r.width > innerWidth - 6) x = e.clientX - r.width - 14; if (y + r.height > innerHeight - 6) y = e.clientY - r.height - 14; t.style.left = x + "px"; t.style.top = y + "px"; }
+function hideTip() { $("tip").hidden = true; }
+
+// ---------------------------------------------------------------- Z-score landscape
+let bgCache = null, scHover = null;
+function scGeom() { const W = Math.min(720, Math.max(380, $("scatterpane").clientWidth - 40)); return { W, H: W, m: Math.round(Math.max(50, 14 + fz("axis", 12) + textW("-0.5", fz("axis", 10)) + 4)) }; }
+function renderScatter() {
+  const ids = ds.conditions.map(c => c.id), opt = ds.conditions.map(c => `<option value="${c.id}">${esc(c.label)}</option>`).join("");
+  $("scx").innerHTML = opt; $("scy").innerHTML = opt; $("scx").value = S.x; $("scy").value = S.y;
+  const { W, H, m } = scGeom(), R = ZMAX, X = v => m + (v + R) / (2 * R) * (W - 2 * m), Y = v => H - m - (v + R) / (2 * R) * (H - 2 * m);
+  const cx = condById(S.x), cy = condById(S.y), bgSig = $("scbg").checked;
+  const cv = $("sccanvas"), dpr = devicePixelRatio || 1;
+  cv.width = W * dpr; cv.height = H * dpr; cv.style.width = W + "px"; cv.style.height = H + "px";
+  const g = cv.getContext("2d"); g.setTransform(dpr, 0, 0, dpr, 0, 0); g.clearRect(0, 0, W, H);
+  const zx = T[cx.z], zy = T[cy.z], pts = [];
+  g.fillStyle = "rgba(120,126,136,0.22)";
+  for (let i = 0; i < N; i++) {
+    const a = zx[i], b = zy[i]; if (a == null || b == null) continue;
+    if (bgSig) { const qa = cx.q ? T[cx.q][i] : null, qb = cy.q ? T[cy.q][i] : null; if (!((qa != null && qa < 0.05) || (qb != null && qb < 0.05))) continue; }
+    const px = X(a), py = Y(b); pts.push([px, py, i]);
+    g.fillRect(px - 1.3, py - 1.3, 2.6, 2.6);
+  }
+  bgCache = { pts, X, Y };
+  const parts = [], iso = $("sciso").checked && ds.conditions.length === 3 && S.x !== S.y;
+  const third = ds.conditions.find(c => c.id !== S.x && c.id !== S.y);
+  parts.push(`<rect x="${m}" y="${m}" width="${W - 2 * m}" height="${H - 2 * m}" fill="none" stroke="#D9DDE3"/>`);
+  for (const t of [-1, -0.5, 0, 0.5, 1].map(k => k * Math.floor(R * 2) / 2).filter((v, i, a) => a.indexOf(v) === i)) {
+    parts.push(`<line x1="${X(t)}" x2="${X(t)}" y1="${m}" y2="${H - m}" stroke="${t === 0 ? "#B8BEC7" : "#EEF0F3"}"/><line y1="${Y(t)}" y2="${Y(t)}" x1="${m}" x2="${W - m}" stroke="${t === 0 ? "#B8BEC7" : "#EEF0F3"}"/>`);
+    parts.push(`<text x="${X(t)}" y="${H - m + 4 + fz("axis", 10)}" ${F("axis", 10)} text-anchor="middle" fill="${FC("axis", "#5B6370")}">${t}</text><text x="${m - 6}" y="${Y(t) + 3}" ${F("axis", 10)} text-anchor="end" fill="${FC("axis", "#5B6370")}">${t}</text>`);
+  }
+  if (iso && third) {
+    for (const c of [-1, -0.5, 0, 0.5, 1]) {   // x + y = -c ; clip to the box
+      const segs = [];
+      for (const xv of [-R, R]) { const yv = -c - xv; if (yv >= -R && yv <= R) segs.push([xv, yv]); }
+      for (const yv of [-R, R]) { const xv = -c - yv; if (xv >= -R && xv <= R) segs.push([xv, yv]); }
+      if (segs.length < 2) continue;
+      const [[a1, b1], [a2, b2]] = segs;
+      parts.push(`<line x1="${X(a1)}" y1="${Y(b1)}" x2="${X(a2)}" y2="${Y(b2)}" stroke="${third.colour || "#4477AA"}" stroke-dasharray="5 4" stroke-width="1" opacity=".55"/>`);
+      // label outside the box, at the lower-right end of the line (right edge or bottom edge)
+      const [ex, ey] = a1 > a2 || (a1 === a2 && b1 < b2) ? [a1, b1] : [a2, b2], lab = `${c > 0 ? "+" : ""}${c}`, col = third.colour || "#4477AA";
+      if (ex >= R - 1e-9) parts.push(`<text x="${W - m + 4}" y="${Y(ey) + 3}" ${F("chart", 9.5)} fill="${col}">${lab}</text>`);
+      else parts.push(`<text x="${X(ex)}" y="${H - m + 8 + fz("axis", 10) + fz("chart", 9.5)}" ${F("chart", 9.5)} text-anchor="middle" fill="${col}">${lab}</text>`);
+    }
+    parts.push(`<text x="${W - m + 4}" y="${m + 10}" ${F("chart", 9.5)} fill="${third.colour || "#4477AA"}">Z ${esc(third.label.toLowerCase())}</text><text x="${W - m + 4}" y="${m + 12 + fz("chart", 9.5)}" ${F("chart", 9.5)} fill="${third.colour || "#4477AA"}">(dashed)</text>`);
+  }
+  if (S.x === "mg132" && S.y === "hs") {
+    const q = [["HS-preferring", m + 8, m + 6 + fz("chart", 11), "start"], ["Both up", W - m - 8, m + 6 + fz("chart", 11), "end"], ["MG132-preferring", W - m - 8, H - m - 8, "end"], ["Both down (control-high)", m + 8, H - m - 8, "start"]];
+    for (const [t, x, y, a] of q) parts.push(`<text x="${x}" y="${y}" ${F("chart", 11, 600)} text-anchor="${a}" fill="${FC("chart", "#9AA1AC")}">${t}</text>`);
+  }
+  parts.push(`<text x="${W / 2}" y="${H - 8}" ${F("axis", 12)} text-anchor="middle" fill="#1F2328">${esc(cx.label)} Z-score</text>`);
+  parts.push(`<text x="${4 + fz("axis", 12)}" y="${H / 2}" ${F("axis", 12)} text-anchor="middle" fill="#1F2328" transform="rotate(-90 ${4 + fz("axis", 12)} ${H / 2})">${esc(cy.label)} Z-score</text>`);
+  const labs = [];
+  const order = added.filter(a => a !== active).concat(active ? [active] : []);
+  for (const acc of order) {
+    const col = protColour(acc), P = protReady.get(acc);
+    for (const s of sitesOf(acc)) {
+      const a = s.z[S.x], b = s.z[S.y]; if (a == null || b == null || siteHidden(s, P)) continue;
+      const sel = S.site && S.site.acc === acc && S.site.pos === s.pos, sig = isSig(s, S.x) || isSig(s, S.y);
+      const t = tipId(siteTip(s, cx, P));
+      parts.push(`<circle class="hp site" data-acc="${acc}" data-pos="${s.pos}" data-t="${t}" cx="${X(a)}" cy="${Y(b)}" r="${sel ? 7 : 5}" fill="${sig ? col : "#fff"}" stroke="${sel ? "#111" : col}" stroke-width="${sel ? 2.2 : 1.6}"/>`);
+      if (S.labels !== "none" && (S.labels !== "sig" || sig) || sel) labs.push({ x: X(a), y: Y(b), t: `${s.gene || acc} K${s.pos}`, pri: sel ? 99 : (acc === active ? 2 : 0) + (sig ? 1 : 0), sel });
+    }
+  }
+  const boxes = [];
+  for (const l of labs.sort((a, b) => b.pri - a.pri)) {
+    const LS = fz("site", 9.5), w = textW(l.t, LS, FONTS.site.bold ? 700 : "") + 4, bx = l.x + 7, by = l.y - LS - 2.5;
+    if (S.labels !== "all" && !l.sel && boxes.some(b => bx < b[0] + b[2] && bx + w > b[0] && by < b[1] + LS + 2.5 && by + LS + 2.5 > b[1])) continue;
+    boxes.push([bx, by, w]);
+    parts.push(`<text x="${bx}" y="${l.y - 3}" ${F("site", l.sel ? 10.5 : 9.5, l.sel ? 700 : 400)} fill="#1F2328" pointer-events="none" stroke="#fff" stroke-width="3" paint-order="stroke">${esc(l.t)}</text>`);
+  }
+  const svg = $("scsvg");
+  svg.setAttribute("width", W); svg.setAttribute("height", H); svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
+  svg.setAttribute("font-family", famCSS());
+  svg.innerHTML = parts.join("");
+  $("sckey").innerHTML = added.length ? added.map(a => `<span><span class="dot" style="background:${protColour(a)}"></span>${esc((protReady.get(a) || {}).gene || a)} (${nSitesIn(a)})</span>`).join("") + `<span>filled = q &lt; 0.05 on either axis</span>` : `<span>Add proteins to highlight their sites. Hover a grey point to name it; click it to add its protein.</span>`;
+  $("sccapt").innerHTML = `${pts.length.toLocaleString()} sites in grey${bgSig ? " (significant on either axis)" : ""}. ${esc(ds.zscore_note || "")} ${iso && third ? `Dashed lines: equal ${esc(third.label.toLowerCase())} Z-score.` : ""} <a data-help="scatter/zscore" href="#help/scatter/zscore">What a Z-score is here</a>.`;
+}
+function initScatter() {
+  const svg = $("scsvg");
+  svg.addEventListener("mousemove", e => {
+    if (e.target.closest(".hp")) return;
+    if (!bgCache) return;
+    const r = svg.getBoundingClientRect(), x = e.clientX - r.left, y = e.clientY - r.top;
+    let best = null, bd = 36;
+    for (const p of bgCache.pts) { const d = (p[0] - x) ** 2 + (p[1] - y) ** 2; if (d < bd) { bd = d; best = p; } }
+    scHover = best ? best[2] : null;
+    if (best) { const s = siteObj(best[2]); showTip(`<b>${esc(s.label)}</b> <span class="dim">${esc(s.acc)}</span><br>${ds.conditions.map(c => `${esc(c.label)} Z ${fmt(s.z[c.id])}`).join(" · ")}<br><span class="dim">click to add ${esc(s.gene || s.acc)}</span>`, e); svg.style.cursor = "pointer"; }
+    else { hideTip(); svg.style.cursor = "default"; }
+  });
+  svg.addEventListener("mouseleave", hideTip);
+  svg.addEventListener("click", async e => {
+    const c = e.target.closest(".site"); if (c) { selectSite(c.dataset.acc, +c.dataset.pos); return; }
+    if (scHover != null) { const s = siteObj(scHover); if (!added.includes(s.acc)) await addProteins([s.acc]); else setActive(s.acc); selectSite(s.acc, s.pos); }
+  });
+  for (const id of ["scx", "scy"]) $(id).addEventListener("change", () => { S.x = $("scx").value; S.y = $("scy").value; renderScatter(); syncUrl(); });
+  for (const id of ["scbg", "sciso"]) $(id).addEventListener("change", renderScatter);
+}
+
+// ---------------------------------------------------------------- heatmap
+function renderHeat() {
+  const wrap = $("heatwrap");
+  if (!added.length) { wrap.innerHTML = `<p class="dim" style="color:var(--muted)">Add proteins to compare their sites across the conditions.</p>`; return; }
+  const conds = ds.conditions, cw = Math.max(conds.length > 4 ? 46 : 70, ...conds.map(c => textW(c.label, fz("chart", 11), 600) + 10)), rh = Math.max(15, fz("site", 10.5) + 4), lw = Math.max(150, 16 + textW("K0000", fz("site", 10.5), 700)), top = Math.round(26 + fz("chart", 11)), parts = [];
+  let y = top;
+  conds.forEach((c, k) => parts.push(`<text x="${lw + k * cw + cw / 2}" y="${top - 10}" ${F("chart", 11, 600)} text-anchor="middle" fill="${c.colour || "#333"}">${esc(c.label)}</text>`));
+  for (const acc of added) {
+    const P = protReady.get(acc), ss = sitesOf(acc).filter(s => !siteHidden(s, P));
+    if (!ss.length) continue;
+    parts.push(`<text x="4" y="${y + fz("chart", 12)}" ${F("chart", 12, 700)} fill="${protColour(acc)}">${esc((P && P.gene) || acc)}</text>`); y += Math.max(16, fz("chart", 12) + 5);
+    for (const s of ss) {
+      const sel = S.site && S.site.acc === acc && S.site.pos === s.pos;
+      parts.push(`<g class="site" data-acc="${acc}" data-pos="${s.pos}" data-t="${tipId(siteTip(s, conds[0], P))}" style="cursor:pointer">`);
+      parts.push(`<text x="${lw - 8}" y="${y + rh / 2 - 1 + fz("site", 10.5) * 0.36}" ${F("site", 10.5, sel ? 700 : 400)} text-anchor="end" fill="#1F2328">K${s.pos}</text>`);
+      conds.forEach((c, k) => {
+        const z = s.z[c.id], x = lw + k * cw;
+        parts.push(`<rect x="${x}" y="${y}" width="${cw - 2}" height="${rh - 2}" fill="${zColour(z)}" stroke="${sel ? "#111" : "none"}"/>`);
+        if (c.present && !s.present[c.id]) parts.push(`<line x1="${x + 3}" y1="${y + rh / 2 - 1}" x2="${x + cw - 5}" y2="${y + rh / 2 - 1}" stroke="#999"/>`);
+        else if (c.q && isSig(s, c.id)) parts.push(`<circle cx="${x + cw - 9}" cy="${y + rh / 2 - 1}" r="2.4" fill="#111"/>`);
+      });
+      parts.push(`</g>`);
+      y += rh;
+    }
+    y += 10;
+  }
+  const W = lw + conds.length * cw + 120;
+  const lx = lw + conds.length * cw + 20;
+  for (let k = 0; k <= 20; k++) parts.push(`<rect x="${lx}" y="${top + (20 - k) * 6}" width="14" height="6" fill="${zColour(-ZMAX + k * ZMAX / 10)}"/>`);
+  parts.push(`<text x="${lx + 18}" y="${top + 6}" ${F("axis", 9.5)} fill="${FC("axis", "#5B6370")}">+${ZMAX}</text><text x="${lx + 18}" y="${top + 64}" ${F("axis", 9.5)} fill="${FC("axis", "#5B6370")}">0</text><text x="${lx + 18}" y="${top + 126}" ${F("axis", 9.5)} fill="${FC("axis", "#5B6370")}">−${ZMAX}</text><text x="${lx}" y="${top - 10}" ${F("axis", 10)} fill="${FC("axis", "#5B6370")}">Z-score</text><circle cx="${lx + 4}" cy="${top + 146}" r="2.4" fill="#111"/><text x="${lx + 12}" y="${top + 149}" ${F("axis", 9.5)} fill="${FC("axis", "#5B6370")}">q &lt; 0.05</text>`);
+  wrap.innerHTML = `<svg id="heatsvg" xmlns="http://www.w3.org/2000/svg" width="${W}" height="${Math.max(y, top + 170)}" font-family="${famCSS()}">${parts.join("")}</svg>`;
+}
+
+// ---------------------------------------------------------------- structure (Mol*, AlphaFold DB)
+let viewer = null, molstarLoading = null, afCache = new Map(), structShown = null;
+function loadMolstar() {
+  if (window.molstar) return Promise.resolve();
+  if (!molstarLoading) molstarLoading = new Promise((res, rej) => { const s = document.createElement("script"); s.src = "https://cdn.jsdelivr.net/npm/molstar@5.12.0/build/viewer/molstar.js"; s.onload = res; s.onerror = () => rej(new Error("Mol* could not be loaded")); document.head.appendChild(s); });
+  return molstarLoading;
+}
+async function afModel(acc) {
+  if (!afCache.has(acc)) afCache.set(acc, (async () => {
+    const js = await getJSON(`https://alphafold.ebi.ac.uk/api/prediction/${acc}`), m = Array.isArray(js) ? js[0] : js;
+    let plddt = null;
+    if (m.plddtDocUrl) { try { const p = await getJSON(m.plddtDocUrl); plddt = p.confidenceScore || (Array.isArray(p) ? p[0].confidenceScore : null); } catch (e) { plddt = null; } }
+    return { url: m.bcifUrl || m.cifUrl, format: m.bcifUrl ? "bcif" : "mmcif", seq: m.uniprotSequence || m.sequence, version: m.latestVersion || m.modelCreatedDate, plddt, entryId: m.entryId };
+  })().catch(e => { afCache.delete(acc); throw e; }));
+  return afCache.get(acc);
+}
+function structColour(s, P) {
+  const [kind, cid] = S.stcol.split(":");
+  if (kind === "z") { const c = condById(cid); if (c && c.present && !s.present[cid]) return "#CCCCCC"; return zColour(s.z[cid]); }
+  const saved = S.colour; S.colour = kind; const col = siteFill(s, ds.conditions[0].id, P)[0]; S.colour = saved; return col;
+}
+function plddtBand(v) { return v >= 90 ? "#0053D6" : v >= 70 ? "#65CBF3" : v >= 50 ? "#FFDB13" : "#FF7D45"; }
+// domains on the structure: domains with SUMO sites get their own colour, domains without sites a pale tint
+const DOMAIN_COLOURS = ["#E69F00", "#009E73", "#CC79A7", "#56B4E9", "#D55E00", "#0072B2", "#F0E442", "#882255", "#44AA99", "#999933", "#AA4499", "#117733"];
+const DOMAIN_NOSITE = "#B9C0CB", DOMAIN_BACKBONE = "#EEF0F3";
+let stFocus = null;   // key of the domain in focus (legend click)
+function structDomains(P, af, sites) {
+  const src = $("stprot").value === "pfam" ? P.pfams : P.feats.filter(f => TRACKS.find(t => t.id === "domains").types.includes(f.type));
+  const out = [];
+  for (const f of src) {
+    let s = f.s, e = f.e;
+    if (af.seq !== P.seq) {   // isoform / changed sequence: place by the domain's residues
+      const sub = (P.seq || "").slice(f.s - 1, f.e), i = sub.length >= 5 && af.seq ? af.seq.indexOf(sub) : -1;
+      if (i < 0 || af.seq.indexOf(sub, i + 1) >= 0) { out.push({ ...f, placed: false, sites: [] }); continue; }
+      s = i + 1; e = i + sub.length;
+    }
+    const inside = sites.filter(x => x.pos >= f.s && x.pos <= f.e);
+    out.push({ ...f, ms: s, me: e, placed: true, sites: inside, sig: inside.filter(isSigAny).length, key: `${f.type}:${f.s}-${f.e}:${f.label}` });
+  }
+  out.sort((a, b) => a.s - b.s);
+  let k = 0;
+  for (const d of out) d.colour = !d.placed ? null : d.sites.length ? DOMAIN_COLOURS[k++ % DOMAIN_COLOURS.length] : DOMAIN_NOSITE;
+  return out;
+}
+function renderStructLegend(doms, mode) {
+  const box = $("structlegend");
+  if (!doms) { box.hidden = true; return; }
+  const what = mode === "pfam" ? "Pfam domains" : "UniProt domains";
+  if (!doms.length) { box.hidden = false; box.innerHTML = `<h4>${what}</h4><div class="dim">None annotated for this protein.</div>`; return; }
+  const row = d => `<div class="dl${stFocus === d.key ? " on" : ""}" data-dkey="${esc(d.key)}" title="${esc(d.type)} ${d.s}–${d.e}${d.placed ? " · click to zoom" : " · not on the model (sequence differs)"}"><span class="sw" style="background:${d.colour || "#fff"}"></span><span>${esc(d.label)} <span class="dim">${d.s}–${d.e}</span></span><span class="n">${d.sites.length ? `${d.sites.length} site${d.sites.length > 1 ? "s" : ""}${d.sig ? ` · ${d.sig} q&lt;0.05` : ""}` : d.placed ? "no sites" : "not placed"}</span></div>`;
+  const withS = doms.filter(d => d.sites.length), without = doms.filter(d => !d.sites.length);
+  box.hidden = false;
+  box.innerHTML = `<h4>${what} with SUMO sites (${withS.length} of ${doms.length})</h4>${withS.map(row).join("") || '<div class="dim">none of the sites shown lies in a domain</div>'}`
+    + (without.length ? `<h4 style="margin-top:8px">without sites</h4>${without.map(row).join("")}` : "");
+}
+async function renderStructure() {
+  const opts = ds.conditions.map(c => [`z:${c.id}`, `Z-score ${c.label}`]).concat([["motif", "Motif"], ["known", "Known in UniProt"], ["context", "Domain context"]]);
+  $("stcol").innerHTML = opts.map(([v, l]) => `<option value="${v}">${esc(l)}</option>`).join(""); $("stcol").value = S.stcol;
+  const msg = $("structmsg");
+  if (!active) { $("structname").innerHTML = "<b>No protein</b> — add one under <i>Proteins</i>"; msg.hidden = true; $("structlegend").hidden = true; return; }
+  const P = protReady.get(active); if (!P) return;
+  const base = active.split("-")[0];
+  $("structname").innerHTML = `<b>${esc(P.gene || active)}</b> <span style="color:var(--muted)">AlphaFold DB ${esc(base)}</span>`;
+  msg.hidden = false; msg.textContent = "Loading the AlphaFold model…";
+  try {
+    await loadMolstar();
+    if (!viewer) viewer = await molstar.Viewer.create("viewer", { layoutIsExpanded: false, layoutShowControls: false, layoutShowRemoteState: false, layoutShowSequence: true, layoutShowLog: false, layoutShowLeftPanel: false, viewportShowExpand: true, viewportShowSelectionMode: false, viewportShowAnimation: false, collapseLeftPanel: true, collapseRightPanel: true });
+    const af = await afModel(base);
+    const sites = sitesOf(active).filter(s => !siteHidden(s, P)), placed = [], missing = [];
+    for (const s of sites) {
+      let p = null;
+      if (af.seq === P.seq) p = s.pos;
+      else if (af.seq) { const ctx = (P.seq || "").slice(Math.max(0, s.pos - 8), s.pos + 7), i = ctx.length >= 9 ? af.seq.indexOf(ctx) : -1; if (i >= 0 && af.seq.indexOf(ctx, i + 1) < 0) p = i + (s.pos - 1 - Math.max(0, s.pos - 8)) + 1; }
+      if (p != null && af.seq[p - 1] === "K") placed.push([s, p]); else missing.push(s);
+    }
+    const el = p => ({ label_seq_id: p });
+    const mode = $("stprot").value, domMode = mode === "domains" || mode === "pfam";
+    const protRep = { kind: "representation", params: { type: "cartoon" }, children: [{ kind: "color", params: { color: domMode ? DOMAIN_BACKBONE : "#D5D9E0" } }] };
+    if (mode === "plddt" && af.plddt) {
+      const by = new Map(); af.plddt.forEach((v, i) => { const c = plddtBand(v); (by.get(c) || by.set(c, []).get(c)).push(el(i + 1)); });
+      for (const [color, selector] of by) protRep.children.push({ kind: "color", params: { color, selector } });
+    }
+    const doms = domMode ? structDomains(P, af, sites) : null;
+    const range = d => ({ beg_label_seq_id: d.ms, end_label_seq_id: d.me });
+    if (doms) {   // longest first, so a domain nested in another is painted on top
+      for (const d of doms.filter(x => x.placed).sort((a, b) => (b.me - b.ms) - (a.me - a.ms)))
+        protRep.children.push({ kind: "color", params: { color: d.colour, selector: range(d) } });
+    }
+    if (doms && stFocus && !doms.some(d => d.key === stFocus && d.placed)) stFocus = null;
+    renderStructLegend(doms, mode);
+    const comps = [{ kind: "component", params: { selector: "polymer" }, children: [protRep] }];
+    if (doms) for (const d of doms.filter(x => x.placed)) {
+      // hover: full name; label (domains with sites): short name on the domain's middle residue, so its size
+      // follows a residue, not the whole domain
+      comps.push({ kind: "component", params: { selector: range(d) }, children: [{ kind: "tooltip", params: { text: `${d.label} ${d.s}–${d.e} · ${d.sites.length ? d.sites.length + " SUMO site" + (d.sites.length > 1 ? "s" : "") : "no SUMO sites"}` } }] });
+      if ($("stlabels").checked && d.sites.length) {
+        const short = d.label.length > 22 ? d.label.slice(0, 21).trim() + "…" : d.label;
+        comps.push({ kind: "component", params: { selector: el(Math.round((d.ms + d.me) / 2)) }, children: [{ kind: "label", params: { text: `${short} (${d.sites.length})` } }] });
+      }
+    }
+    if (placed.length) {
+      const by = new Map(); for (const [s, p] of placed) { const c = structColour(s, P); (by.get(c) || by.set(c, []).get(c)).push(el(p)); }
+      const rep = { kind: "representation", params: { type: "spacefill", size_factor: 1.5 }, children: [...by].map(([color, selector]) => ({ kind: "color", params: { color, selector } })) };
+      const comp = { kind: "component", params: { selector: placed.map(([, p]) => el(p)) }, children: [rep] };
+      comps.push(comp);
+      const showLab = $("stlabels").checked, selP = S.site && S.site.acc === active ? placed.find(([s]) => s.pos === S.site.pos) : null;
+      if (selP) comps.push({ kind: "component", params: { selector: el(selP[1]) }, children: [{ kind: "representation", params: { type: "spacefill", size_factor: 2.4 }, children: [{ kind: "color", params: { color: structColour(selP[0], P) } }] }] });
+      for (const [s, p] of placed) if (showLab && (placed.length <= 40 || isSigAny(s)) || (selP && selP[0] === s))
+        comps.push({ kind: "component", params: { selector: el(p) }, children: [{ kind: "label", params: { text: selP && selP[0] === s ? `▶ K${s.pos}` : `K${s.pos}` } }] });
+    }
+    const fd = doms && stFocus ? doms.find(d => d.key === stFocus) : null;
+    if (fd) comps.push({ kind: "component", params: { selector: range(fd) }, children: [{ kind: "focus", params: {} }] });
+    else comps[0].children.push({ kind: "focus", params: {} });   // always frame the whole model; Mol*'s own zoom goes closer
+    const scene = { kind: "single", metadata: { version: "1", title: `${P.gene || active} AlphaFold model` }, root: { kind: "root", children: [
+      { kind: "canvas", params: { background_color: "white" } },
+      { kind: "download", params: { url: af.url }, children: [{ kind: "parse", params: { format: af.format }, children: [{ kind: "structure", params: { type: "model" }, children: comps }] }] }] } };
+    await viewer.loadMvsData(JSON.stringify(scene), "mvsj", { replaceExisting: true });
+    structShown = active;
+    msg.innerHTML = `${placed.length} of ${sites.length} sites placed on ${esc(af.entryId || "the model")}${af.version ? ` (v${esc(af.version)})` : ""}.${missing.length ? ` Not placed: ${missing.slice(0, 10).map(s => "K" + s.pos).join(", ")}${missing.length > 10 ? " …" : ""} (sequence differs from the model).` : ""}${active !== base ? " Isoform: shown on the canonical model where the sequence context matches." : ""}`;
+    setTimeout(() => { if (structShown === active) msg.hidden = true; }, 7000);
+  } catch (e) {
+    $("structlegend").hidden = true;
+    msg.hidden = false; msg.textContent = `No structure: ${e.message.includes("404") ? "the AlphaFold DB has no model for " + base : e.message}`;
+  }
+}
+const isSigAny = s => anySig(s);
+
+// ---------------------------------------------------------------- aside controls
+function renderControls() {
+  $("condbtns").innerHTML = ds.conditions.map(c => `<button data-cond="${c.id}" aria-pressed="${S.conds.has(c.id)}"><span class="sw" style="background:${c.colour}"></span>${esc(c.label)}</button>`).join("");
+  const cols = COLOURINGS.filter(([k]) => k !== "cells" || (ds.detection || []).length);
+  $("colbtns").innerHTML = cols.map(([k, l]) => `<button data-col="${k}" aria-pressed="${S.colour === k}">${esc(l)}</button>`).join("");
+  $("labbtns").innerHTML = [["auto", "Auto"], ["all", "All"], ["sig", "Significant"], ["none", "None"]].map(([k, l]) => `<button data-lab="${k}" aria-pressed="${S.labels === k}">${l}</button>`).join("");
+  $("sizebtns").innerHTML = [["comfortable", "Comfortable"], ["compact", "Compact"]].map(([k, l]) => `<button data-size="${k}" aria-pressed="${S.size === k}">${l}</button>`).join("");
+  // legend
+  const def = legendDef(); let lg = "";
+  if (S.colour === "cond") lg = `<div class="keys">${ds.conditions.map(c => `<span><span class="dot" style="background:${c.colour}"></span>${esc(c.label)}</span>`).join("")}</div><div class="note">filled = q &lt; 0.05 in that condition · open = not significant${ds.conditions.some(c => c.present) ? " · grey open = absent in that organ" : ""}</div>`;
+  else if (S.colour === "z") lg = `<div class="bar" style="background:linear-gradient(90deg, ${zColour(-ZMAX)}, ${zColour(0)}, ${zColour(ZMAX)})"></div><div class="ticks"><span>−${ZMAX}</span><span>0</span><span>+${ZMAX}</span></div><div class="note">dark outline = q &lt; 0.05</div>`;
+  else lg = `<div class="keys">${Object.entries(def).map(([k, [l, c]]) => `<span class="k${S.hide.has(`site:${S.colour}:${k}`) ? " hid" : ""}" data-key="site:${S.colour}:${k}"><span class="dot" style="background:${c}"></span>${esc(l)}</span>`).join("")}</div><div class="note">click an entry to hide or show those sites · dark outline = significant</div>`;
+  $("legend").innerHTML = lg;
+  // tracks legend
+  const sw = tr => tr.lys ? `<span class="sq" style="background:linear-gradient(90deg,#B8BEC7 0 40%,#2B2F36 40% 60%,#B8BEC7 60%)"></span>` : tr.pfam ? `<span class="sq" style="background:${FCOL.Pfam}"></span>` : `<span class="sq" style="background:${FCOL[tr.types[0]]}"></span>`;
+  $("tracklegend").innerHTML = `<div class="keys">${TRACKS.map(tr => `<span class="k${S.hide.has("track:" + tr.id) ? " hid" : ""}" data-key="track:${tr.id}">${sw(tr)}${esc(tr.label)}</span>`).join("")}</div>
+    <div class="keys" style="margin-top:6px">${["Domain", "Repeat", "Zinc finger", "DNA binding", "Coiled coil", "Region", "Disordered", "Motif", "Compositional bias", "Topological domain", "Transmembrane", "Signal"].map(t => `<span><span class="sq" style="background:${FCOL[t]}"></span>${t}</span>`).join("")}</div>
+    <div class="note">Lysines: grey = lysine, dark = SUMO site; squares underneath: <span style="color:${MOTIFS.psiKxE[1]}">■</span> ψKxE <span style="color:${MOTIFS.KxE[1]}">■</span> KxE <span style="color:${MOTIFS.inv[1]}">■</span> [ED]xK. Triangles: UniProt sites and lysine PTMs (outlined = SUMO cross-link).</div>`;
+  $("fsig").innerHTML = `<option value="">any significance</option>` + ds.conditions.filter(c => c.q).filter((c, i, a) => a.findIndex(k => k.q === c.q) === i).map(c => `<option value="${c.q === "anova_q" ? "any" : c.id}">${c.q === "anova_q" ? "ANOVA" : esc(c.label)} q &lt; 0.05</option>`).join("") + (ds.conditions.filter(c => c.q).length > 1 ? `<option value="any">any q &lt; 0.05</option>` : "");
+  $("fsig").value = S.fsig || "";
+  // chips
+  $("chips").innerHTML = added.map(a => { const P = protReady.get(a), ir = indexRow(a); return `<span class="chip${a === active ? " on" : ""}" data-chip="${a}" title="${esc(a)} — click to make active"><i style="background:${protColour(a)}"></i>${esc((P && P.gene) || (ir && ir[1]) || a)}<button data-rmchip="${a}" aria-label="Remove ${esc(a)}">×</button></span>`; }).join("");
+  const helpFor = { map: "map/what", scatter: "scatter/read", heat: "heat/what", structure: "structure/what" }[S.tab];
+  $("tabhelp").dataset.help = helpFor; $("tabhelp").href = "#help/" + helpFor;
+}
+function initControls() {
+  document.querySelector("aside").addEventListener("click", e => {
+    const b = e.target.closest("button, .k, .chip"); if (!b) return;
+    if (b.dataset.cond) { S.conds.has(b.dataset.cond) ? S.conds.delete(b.dataset.cond) : S.conds.add(b.dataset.cond); if (!S.conds.size) S.conds.add(b.dataset.cond); renderAll(); }
+    else if (b.dataset.col) { S.colour = b.dataset.col; renderAll(); }
+    else if (b.dataset.lab) { S.labels = b.dataset.lab; renderAll(); }
+    else if (b.dataset.size) { S.size = b.dataset.size; renderAll(); }
+    else if (b.dataset.key) { S.hide.has(b.dataset.key) ? S.hide.delete(b.dataset.key) : S.hide.add(b.dataset.key); renderAll(); }
+    else if (b.dataset.rmchip) { e.stopPropagation(); removeProtein(b.dataset.rmchip); }
+    else if (b.dataset.chip) setActive(b.dataset.chip);
+  });
+  $("dataset").addEventListener("change", async () => { await loadDataset($("dataset").value); S.site = null; renderAll(); });
+  // search with suggestions
+  const q = $("protq"), sug = $("suggest"); let sel = -1, list = [];
+  const show = () => {
+    const t = q.value.trim().toUpperCase(); sel = -1;
+    if (t.length < 1) { sug.hidden = true; return; }
+    list = INDEX.filter(r => r[1].toUpperCase().startsWith(t) || r[0].startsWith(t)).sort((a, b) => (nSitesIn(b[0]) > 0) - (nSitesIn(a[0]) > 0) || (a[1].toUpperCase() === t ? -1 : b[1].toUpperCase() === t ? 1 : 0) || a[1].length - b[1].length || nSitesIn(b[0]) - nSitesIn(a[0])).slice(0, 30);
+    if (list.length < 30) list = list.concat(INDEX.filter(r => !list.includes(r) && r[2].toUpperCase().includes(t)).slice(0, 30 - list.length));
+    sug.innerHTML = list.map((r, i) => `<div data-i="${i}"><b>${esc(r[1] || r[0])}</b> <small>${esc(r[0])} · ${nSitesIn(r[0])} sites · ${esc(r[2])}</small></div>`).join("") || `<div class="dim"><small>Not in the dataset — Add looks it up in UniProt</small></div>`;
+    sug.hidden = false;
+  };
+  q.addEventListener("input", show);
+  q.addEventListener("keydown", e => {
+    const items = sug.querySelectorAll("div[data-i]");
+    if (e.key === "ArrowDown") { sel = Math.min(items.length - 1, sel + 1); e.preventDefault(); }
+    else if (e.key === "ArrowUp") { sel = Math.max(0, sel - 1); e.preventDefault(); }
+    else if (e.key === "Escape") { sug.hidden = true; return; } else return;
+    items.forEach((d, i) => d.classList.toggle("on", i === sel)); items[sel]?.scrollIntoView({ block: "nearest" });
+  });
+  sug.addEventListener("mousedown", e => { const d = e.target.closest("div[data-i]"); if (!d) return; e.preventDefault(); q.value = ""; sug.hidden = true; addProteins([list[+d.dataset.i][0]]); });
+  q.addEventListener("blur", () => setTimeout(() => sug.hidden = true, 150));
+  $("protform").addEventListener("submit", e => { e.preventDefault(); const v = sel >= 0 && list[sel] ? list[sel][0] : q.value; q.value = ""; sug.hidden = true; if (v.trim()) addProteins(v.split(/[\s,;]+/).filter(Boolean)); });
+  $("pastebtn").addEventListener("click", () => { $("pastebox").hidden = !$("pastebox").hidden; if (!$("pastebox").hidden) $("pastebox").focus(); });
+  $("pastebox").addEventListener("keydown", e => { if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) { const v = $("pastebox").value.split(/[\s,;]+/).filter(Boolean); $("pastebox").value = ""; $("pastebox").hidden = true; addProteins(v); } });
+  $("clearbtn").addEventListener("click", () => { added = []; active = null; S.site = null; zoomOf.clear(); renderAll(); });
+  $("q").addEventListener("input", renderTable);
+  $("fsig").addEventListener("change", () => { S.fsig = $("fsig").value; renderTable(); });
+  $("fmotif").addEventListener("change", renderTable);
+  $("stcol").addEventListener("change", () => { S.stcol = $("stcol").value; renderStructure(); syncUrl(); });
+  $("stprot").addEventListener("change", () => { stFocus = null; renderStructure(); });
+  $("stlabels").addEventListener("change", renderStructure);
+  $("structlegend").addEventListener("click", e => { const r = e.target.closest("[data-dkey]"); if (!r) return; stFocus = stFocus === r.dataset.dkey ? null : r.dataset.dkey; renderStructure(); });
+}
+
+// ---------------------------------------------------------------- site table and details
+function renderTable() {
+  const qcols = ds.conditions.filter(c => c.q).filter((c, i, a) => a.findIndex(k => k.q === c.q) === i);
+  const short = c => c.short || ({ control: "ctrl", hs: "HS" })[c.id] || (c.label.length > 6 ? c.label.slice(0, 5) + "." : c.label);
+  const cols = [["label", "Site", false]].concat(ds.conditions.map(c => [`z:${c.id}`, `Z ${short(c)}`, true]), qcols.map(c => [`q:${c.id}`, c.q === "anova_q" ? "q ANOVA" : `q ${short(c)}`, true]), [["motif", "Motif", false]]);
+  $("thead").innerHTML = `<tr>${cols.map(([k, l, num]) => `<th data-sort="${k}" class="${num ? "num" : ""}">${esc(l)}${S.sort && S.sort.replace(/^-/, "") === k ? (S.sort[0] === "-" ? " ↓" : " ↑") : ""}</th>`).join("")}</tr>`;
+  const text = $("q").value.trim().toUpperCase(), fsig = S.fsig || "", fm = $("fmotif").value;
+  let rows = [];
+  for (const acc of [active].concat(added.filter(a => a !== active)).filter(Boolean)) {
+    const P = protReady.get(acc);
+    for (const s of sitesOf(acc)) {
+      s.motif = motifAt(P && P.seq, s.pos);
+      if (text && !s.label.toUpperCase().includes(text) && !s.acc.includes(text)) continue;
+      if (fsig === "any" ? !anySig(s) : fsig && !isSig(s, fsig)) continue;
+      if (fm && (fm === "KxE" ? !(s.motif === "KxE" || s.motif === "psiKxE") : s.motif !== fm)) continue;
+      if (siteHidden(s, P)) continue;
+      rows.push(s);
+    }
+  }
+  if (S.sort) {
+    const desc = S.sort[0] === "-", k = S.sort.replace(/^-/, ""), val = s => k === "label" ? s.label : k === "motif" ? s.motif : k.startsWith("z:") ? s.z[k.slice(2)] : s.q[k.slice(2)];
+    rows.sort((a, b) => { const x = val(a), y = val(b); if (x == null) return 1; if (y == null) return -1; return (x < y ? -1 : x > y ? 1 : 0) * (desc ? -1 : 1); });
+  }
+  tableRows = rows;
+  const shown = rows.slice(0, 1500);
+  $("rows").innerHTML = shown.map((s, i) => {
+    const sel = S.site && S.site.acc === s.acc && S.site.pos === s.pos;
+    return `<tr data-row="${i}" class="${sel ? "sel" : ""}"><td><span class="dot" style="background:${protColour(s.acc)};width:8px;height:8px"></span>${esc(s.label)}</td>${ds.conditions.map(c => `<td class="num${s.z[c.id] == null ? " nq" : ""}">${fmt(s.z[c.id])}</td>`).join("")}${qcols.map(c => `<td class="num">${isSig(s, c.id) ? `<span class="sig">${fmtq(s.q[c.id])}</span>` : fmtq(s.q[c.id])}</td>`).join("")}<td>${MOTIFS[s.motif][0]}</td></tr>`;
+  }).join("") || `<tr><td colspan="${cols.length}" style="color:var(--muted);padding:12px 8px">${added.length ? "No site matches the filters." : "Add a protein to list its sites."}</td></tr>`;
+  $("count").textContent = rows.length ? `${rows.length} site${rows.length === 1 ? "" : "s"}${rows.length > shown.length ? ` (first ${shown.length})` : ""}` : "";
+}
+function initTable() {
+  $("thead").addEventListener("click", e => { const th = e.target.closest("th"); if (!th) return; const k = th.dataset.sort; S.sort = S.sort === k ? "-" + k : S.sort === "-" + k ? null : k; renderTable(); });
+  $("rows").addEventListener("click", e => { const tr = e.target.closest("tr[data-row]"); if (!tr) return; const s = tableRows[+tr.dataset.row]; selectSite(s.acc, s.pos, { scroll: true }); });
+}
+function selectSite(acc, pos, { scroll = false } = {}) {
+  S.site = { acc, pos };
+  if (acc !== active && added.includes(acc)) active = acc;
+  renderAll({ keepScroll: true });
+  if (scroll || S.tab === "map") {
+    const z = zoomOf.get(acc);
+    if (z && (pos < z[0] || pos > z[1])) { const span = z[1] - z[0]; zoomOf.set(acc, [pos - span / 2, pos + span / 2]); rerenderBlock(acc); }
+    if (scroll && S.tab === "map") document.querySelector(`.pblock[data-block="${CSS.escape(acc)}"]`)?.scrollIntoView({ block: "nearest", behavior: "smooth" });
+  }
+  document.querySelector("#rows tr.sel")?.scrollIntoView({ block: "nearest" });
+}
+function renderDetail() {
+  const box = $("detail"), help = ` <a class="hl" href="#help/table/details" data-help="table/details" title="Help: the site details">ⓘ</a>`;
+  if (!S.site) { box.innerHTML = `Select a site in the table or click a lollipop head.${help}`; return; }
+  const idx = (byAcc.get(S.site.acc) || []).find(i => T.pos[i] === S.site.pos);
+  if (idx == null) { box.innerHTML = `Select a site in the table or click a lollipop head.${help}`; return; }
+  const s = siteObj(idx), P = protReady.get(s.acc), m = motifAt(P && P.seq, s.pos);
+  const cov = coveringFeatures(P, s.pos), rec = P ? P.feats.filter(f => (f.s === s.pos || f.e === s.pos) && TRACKS.find(t => t.id === "ptm").types.includes(f.type)) : [];
+  const condRows = ds.conditions.map(c => `<dt style="color:${c.colour}">${esc(c.label)}</dt><dd>Z ${fmt(s.z[c.id])}${c.lfc ? ` · log2FC ${fmt(s.lfc[c.id], 2)}` : ""}${c.q && c.q !== "anova_q" ? ` · q ${isSig(s, c.id) ? `<b>${fmtq(s.q[c.id])}</b>` : fmtq(s.q[c.id])}` : ""}${c.present ? (s.present[c.id] ? " · present" : " · absent") : ""}</dd>`).join("");
+  const anova = ds.conditions.some(c => c.q === "anova_q") ? `<dt>ANOVA q</dt><dd>${fmtq(T.anova_q[idx])}</dd>` : "";
+  box.innerHTML = `<div class="name">${esc(s.label)} <span style="font-weight:400;color:var(--muted)">${esc(s.acc)}</span>${help}</div>
+    <div style="color:var(--muted)">${esc((P && P.name) || "")}</div>
+    <div style="margin-top:4px"><span class="seqwin">${seqWindow(P && P.seq, s.pos, 10)}</span></div>
+    <dl><dt>Motif</dt><dd>${MOTIFS[m][0]}</dd>
+      <dt>Annotation</dt><dd>${cov.length ? cov.map(f => `${esc(f.label)} <span style="color:var(--muted)">(${esc(f.type === "Pfam" ? "Pfam " + f.id : f.type)}, ${f.s}–${f.e})</span>`).join("<br>") : "<span style='color:var(--muted)'>none</span>"}</dd>
+      ${condRows}${anova}
+      ${s.cells.length || (ds.detection || []).length ? `<dt>Detected in</dt><dd>${s.cells.join(", ") || "–"}</dd>` : ""}
+      <dt>UniProt here</dt><dd>${rec.length ? rec.map(f => esc(f.label || f.type)).join("<br>") : "<span style='color:var(--muted)'>nothing recorded</span>"}</dd></dl>
+    <div class="acts">
+      <a class="btn sm" href="https://www.uniprot.org/uniprotkb/${s.acc}" target="_blank" rel="noopener" style="text-decoration:none">UniProt</a>
+      <a class="btn sm" href="https://alphafold.ebi.ac.uk/entry/${s.acc.split("-")[0]}" target="_blank" rel="noopener" style="text-decoration:none">AlphaFold DB</a>
+      <a class="btn sm" href="https://www.phosphosite.org/simpleSearchSubmitAction.action?searchStr=${encodeURIComponent(s.acc.split("-")[0])}" target="_blank" rel="noopener" style="text-decoration:none">PhosphoSitePlus</a>
+      <button class="btn sm" id="dstruct">Show on structure</button>
+    </div>
+    <div class="acts"><span style="font-size:12px;color:var(--muted);align-self:center">SUMO2 conjugate input:</span><button class="btn sm" id="dboltz" title="Boltz-2 YAML with a covalent bond SUMO2 G93 – K${s.pos}">Boltz-2</button><button class="btn sm" id="daf3" title="AlphaFold 3 JSON with bondedAtomPairs">AlphaFold 3</button><a class="hl" href="#help/structure/model" data-help="structure/model">ⓘ</a></div>`;
+  $("dstruct").onclick = () => setTab("structure");
+  $("dboltz").onclick = () => exportModelInput(s, P, "boltz");
+  $("daf3").onclick = () => exportModelInput(s, P, "af3");
+}
+// Human SUMO2 (P61956), mature form ending in the di-glycine (G92-G93); the C-terminal VY is removed in vivo.
+const SUMO2_MATURE = "MADEKPKEGVKTENNDHINLKVAGQDGSVVQFKIKRHTPLSKLMKAYCERQGLSMRQIRFRFDGQPINETDTPAQLEMEDEDTIDVFQQQTGG";
+function exportModelInput(s, P, kind) {
+  if (!P || !P.seq) { toast("No sequence for this protein."); return; }
+  const name = `${(P.gene || s.acc).replace(/\W/g, "_")}_K${s.pos}_SUMO2`, gly = SUMO2_MATURE.length;
+  if (kind === "boltz") {
+    const y = `# SUMOscape ${VERSION} — ${P.gene || ""} ${s.acc} K${s.pos} conjugated to SUMO2 (P61956, mature 1-${gly})\n# Isopeptide bond: SUMO2 Gly${gly} C  —  substrate Lys${s.pos} NZ\n# Run: boltz predict ${name}.yaml --use_msa_server\nversion: 1\nsequences:\n  - protein:\n      id: A\n      sequence: ${P.seq}\n  - protein:\n      id: B\n      sequence: ${SUMO2_MATURE}\nconstraints:\n  - bond:\n      atom1: [A, ${s.pos}, NZ]\n      atom2: [B, ${gly}, C]\n`;
+    download(name + ".yaml", new Blob([y], { type: "text/yaml" }));
+  } else {
+    const j = { name, modelSeeds: [1, 2, 3], sequences: [{ protein: { id: "A", sequence: P.seq } }, { protein: { id: "B", sequence: SUMO2_MATURE } }],
+      bondedAtomPairs: [[["A", s.pos, "NZ"], ["B", gly, "C"]]], dialect: "alphafold3", version: 2,
+      _comment: `SUMOscape ${VERSION}: ${P.gene || ""} ${s.acc} K${s.pos} + SUMO2 (P61956 mature). Check that your AlphaFold 3 version accepts a polymer-polymer bond; otherwise use the Boltz-2 file.` };
+    download(name + ".af3.json", new Blob([JSON.stringify(j, null, 1)], { type: "application/json" }));
+  }
+  toast(`Downloaded ${kind === "boltz" ? "Boltz-2" : "AlphaFold 3"} input for ${s.label}.`);
+}
+
+// ---------------------------------------------------------------- browse dialog
+let bsort = { k: "n", desc: true }, bshown = [];
+function renderBrowse() {
+  const t = $("bsearch").value.trim().toUpperCase();
+  let rows = INDEX.filter(r => nSitesIn(r[0]) > 0 && (!t || r[0].includes(t) || r[1].toUpperCase().includes(t) || r[2].toUpperCase().includes(t)));
+  const v = r => bsort.k === "n" ? nSitesIn(r[0]) : bsort.k === "gene" ? r[1] : bsort.k === "acc" ? r[0] : r[2];
+  rows.sort((a, b) => { const x = v(a), y = v(b); return (x < y ? -1 : x > y ? 1 : 0) * (bsort.desc ? -1 : 1); });
+  bshown = rows;
+  $("bcount").textContent = `${rows.length.toLocaleString()} proteins with sites in this dataset`;
+  $("brows").innerHTML = rows.slice(0, 600).map(r => `<tr><td><input type="checkbox" data-bacc="${r[0]}"${added.includes(r[0]) ? " checked disabled" : ""}></td><td><b>${esc(r[1])}</b></td><td>${esc(r[0])}</td><td>${esc(r[2])}</td><td class="num">${nSitesIn(r[0])}</td></tr>`).join("") + (rows.length > 600 ? `<tr><td colspan="5" style="color:var(--muted)">… ${rows.length - 600} more; narrow the filter</td></tr>` : "");
+}
+function initBrowse() {
+  $("browsebtn").addEventListener("click", () => { renderBrowse(); $("browse").showModal(); $("bsearch").focus(); });
+  $("bclose").addEventListener("click", () => $("browse").close());
+  $("bsearch").addEventListener("input", renderBrowse);
+  $("browse").querySelector("thead").addEventListener("click", e => { const th = e.target.closest("th[data-k]"); if (!th) return; bsort = { k: th.dataset.k, desc: bsort.k === th.dataset.k ? !bsort.desc : th.dataset.k === "n" }; renderBrowse(); });
+  $("ball").addEventListener("change", e => document.querySelectorAll("#brows input:not(:disabled)").forEach(c => c.checked = e.target.checked));
+  $("baddsel").addEventListener("click", async () => { const l = [...document.querySelectorAll("#brows input:checked:not(:disabled)")].map(c => c.dataset.bacc); $("browse").close(); if (l.length) await addProteins(l, { quiet: true }); });
+  $("baddall").addEventListener("click", async () => {
+    const l = bshown.map(r => r[0]).filter(a => !added.includes(a)), room = MAX_ADD - added.length;
+    if (l.length > room) toast(`${l.length} proteins shown; adding the first ${Math.max(0, room)} (limit ${MAX_ADD}). Narrow the filter to add others.`, 5000);
+    $("browse").close(); await addProteins(l.slice(0, Math.max(0, room)), { quiet: true });
+  });
+}
+
+// ---------------------------------------------------------------- overview
+function renderOverview() {
+  const qc = ds.conditions.filter(c => c.q).filter((c, i, a) => a.findIndex(k => k.q === c.q) === i);
+  const sigN = c => { let n = 0; const col = T[c.q]; for (let i = 0; i < N; i++) if (col[i] != null && col[i] < 0.05) n++; return n; };
+  let quad = "";
+  if (condById("mg132") && condById("hs")) {
+    const cnt = { "HS-preferring": 0, "Both up": 0, "MG132-preferring": 0, "Both down": 0 };
+    for (let i = 0; i < N; i++) { const a = T.z_mg132[i], b = T.z_hs[i]; if (a == null || b == null) continue; cnt[a >= 0 ? (b >= 0 ? "Both up" : "MG132-preferring") : (b >= 0 ? "HS-preferring" : "Both down")]++; }
+    quad = `<h3>Sites per quadrant of the landscape (MG132 × heat shock Z)</h3><div class="ovgrid">${Object.entries(cnt).map(([k, v]) => `<div><b>${v.toLocaleString()}</b><span>${k}</span></div>`).join("")}</div>`;
+  }
+  const prot = added.map(acc => {
+    const P = protReady.get(acc), ss = sitesOf(acc), inDom = ss.filter(s => contextAt(P, s.pos) === "domain").length, kxe = ss.filter(s => /KxE/.test(motifAt(P && P.seq, s.pos))).length;
+    return `<tr><td><b style="color:${protColour(acc)}">${esc((P && P.gene) || acc)}</b> <span class="dim">${esc(acc)}</span></td><td class="num">${ss.length}</td><td class="num">${P ? P.lys.length : "–"}</td><td class="num">${inDom}</td><td class="num">${kxe}</td>${qc.map(c => `<td class="num">${ss.filter(s => isSig(s, c.id)).length}</td>`).join("")}</tr>`;
+  }).join("");
+  $("ovcontent").innerHTML = `<h2>${esc(ds.label)}</h2><p class="dim">${esc(ds.source || "")}</p>
+    <div class="ovgrid"><div><b>${N.toLocaleString()}</b><span>sites</span></div><div><b>${byAcc.size.toLocaleString()}</b><span>protein accessions</span></div>${qc.map(c => `<div><b>${sigN(c).toLocaleString()}</b><span>q &lt; 0.05, ${c.q === "anova_q" ? "ANOVA" : esc(c.label)}</span></div>`).join("")}</div>
+    ${quad}<p class="dim">${esc(ds.zscore_note || "")}</p>
+    <h3>Proteins shown</h3>${added.length ? `<table class="htable"><tr><th>Protein</th><th>Sites</th><th>Lysines</th><th>Sites in a domain</th><th>Sites with KxE</th>${qc.map(c => `<th>q &lt; 0.05 ${c.q === "anova_q" ? "ANOVA" : esc(c.label)}</th>`).join("")}</tr>${prot}</table>` : `<p class="dim">No protein added.</p>`}
+    <p class="dim">Counts only; no tests are computed in the page.</p>`;
+}
+
+// ---------------------------------------------------------------- your data
+function parseTable(text) {
+  const lines = text.replace(/\r/g, "").split("\n").filter(l => l.trim());
+  const sep = lines[0].includes("\t") ? "\t" : lines[0].includes(";") && !lines[0].includes(",") ? ";" : ",";
+  const split = l => { const out = []; let cur = "", q = false; for (const ch of l) { if (ch === '"') q = !q; else if (ch === sep && !q) { out.push(cur); cur = ""; } else cur += ch; } out.push(cur); return out.map(v => v.trim()); };
+  const head = split(lines[0]).map(h => h.toLowerCase()); return { head, rows: lines.slice(1).map(split) };
+}
+async function loadUserTable(name, text) {
+  const { head, rows } = parseTable(text);
+  const ci = re => head.findIndex(h => re.test(h));
+  const iP = ci(/^(protein|accession|uniprot|acc)$/), iG = ci(/^(gene|symbol|gene_name)$/), iPos = ci(/^(position|pos|site|residue)$/);
+  if (iPos < 0 || (iP < 0 && iG < 0)) throw new Error("needs a position column and a protein or gene column");
+  const conds = [];
+  head.forEach((h, i) => { const m = h.match(/^z[_ ]?(.+)$/); if (m) conds.push({ id: m[1].replace(/\W/g, "_"), label: m[1], zi: i }); });
+  if (!conds.length) head.forEach((h, i) => { if (i === iP || i === iG || i === iPos) return; if (rows.slice(0, 50).every(r => r[i] === "" || !isNaN(+r[i]))) conds.push({ id: h.replace(/\W/g, "_"), label: h, zi: i, raw: true }); });
+  if (!conds.length) throw new Error("no value columns found");
+  for (const c of conds) { c.qi = head.findIndex(h => h === `q_${c.label}` || h === `q ${c.label}`); c.li = head.findIndex(h => h === `lfc_${c.label}` || h === `log2fc_${c.label}`); }
+  const cols = { acc: [], gene: [], pos: [] }; for (const c of conds) { cols["z_" + c.id] = []; if (c.qi >= 0) cols["q_" + c.id] = []; if (c.li >= 0) cols["lfc_" + c.id] = []; }
+  const resolved = new Map(), unresolved = new Set();
+  for (const r of rows) {
+    let acc = iP >= 0 ? r[iP].toUpperCase() : "", gene = iG >= 0 ? r[iG] : "";
+    if (!acc && gene) { if (!resolved.has(gene)) resolved.set(gene, await resolveQuery(gene)); acc = resolved.get(gene); }
+    const pos = parseInt(r[iPos].replace(/^K/i, ""), 10);
+    if (!acc || !pos) { unresolved.add(gene || r[iP]); continue; }
+    cols.acc.push(acc); cols.gene.push(gene || (idxByAcc.get(acc) || [])[1] || acc); cols.pos.push(pos);
+    for (const c of conds) { const v = r[c.zi]; cols["z_" + c.id].push(v === "" || isNaN(+v) ? null : +v); if (c.qi >= 0) cols["q_" + c.id].push(r[c.qi] === "" ? null : +r[c.qi]); if (c.li >= 0) cols["lfc_" + c.id].push(r[c.li] === "" ? null : +r[c.li]); }
+  }
+  const id = "user";
+  DSI.datasets = DSI.datasets.filter(d => d.id !== id);
+  DSI.datasets.push({ id, user: true, label: `Your data — ${name}`, organism: "Homo sapiens", source: `${name} (loaded in this browser)`, description: `${cols.acc.length} sites from your file.`,
+    conditions: conds.map((c, k) => ({ id: c.id, label: c.label, z: "z_" + c.id, q: c.qi >= 0 ? "q_" + c.id : undefined, lfc: c.li >= 0 ? "lfc_" + c.id : undefined, colour: PALETTE[k % PALETTE.length] })),
+    detection: [], zscore_note: conds.some(c => c.raw) ? "Values as given in your file." : "Z-scores as given in your file.", data: { n: cols.acc.length, columns: cols } });
+  fillDatasetMenu();
+  await loadDataset(id);
+  $("userinfo").innerHTML = `<b>${esc(name)}</b>: ${cols.acc.length} sites, ${new Set(cols.acc).size} proteins, panels ${conds.map(c => esc(c.label)).join(", ")}${unresolved.size ? `; ${unresolved.size} rows not resolved` : ""}.`;
+  added = []; active = null; S.site = null;
+  await addProteins([...new Set(cols.acc)].slice(0, 6), { quiet: true });
+}
+const EXAMPLE = "protein,position,z_control,z_treated,q_treated\nP46060,524,-1.1,1.2,0.001\nP46060,526,0.2,-0.3,0.4\nP11388,1240,-0.8,0.9,0.02\nP11388,662,0.4,0.1,0.6\n";
+function initUser() {
+  const pick = $("pick"), file = $("file"), blk = $("userblock");
+  pick.addEventListener("click", () => file.click());
+  const read = async f => { try { await loadUserTable(f.name, await f.text()); renderAll(); } catch (e) { toast(`Could not read ${f.name}: ${e.message}`, 5000); } };
+  file.addEventListener("change", () => { if (file.files[0]) read(file.files[0]); file.value = ""; });
+  blk.addEventListener("dragover", e => { e.preventDefault(); blk.classList.add("drag"); });
+  blk.addEventListener("dragleave", () => blk.classList.remove("drag"));
+  blk.addEventListener("drop", e => { e.preventDefault(); blk.classList.remove("drag"); if (e.dataTransfer.files[0]) read(e.dataTransfer.files[0]); });
+  const ex = e => { e.preventDefault(); download("sumoscape_example.csv", new Blob([EXAMPLE], { type: "text/csv" })); };
+  $("example").addEventListener("click", ex);
+  document.querySelectorAll(".exlink").forEach(a => a.addEventListener("click", ex));
+}
+
+// ---------------------------------------------------------------- export
+function currentSVG() {
+  if (S.tab === "map") {
+    const svgs = [...document.querySelectorAll("#mapwrap svg.lolli")]; if (!svgs.length) return null;
+    let y = 0, W = 0; const parts = [];
+    svgs.forEach(s => { const h = +s.getAttribute("height"), w = +s.getAttribute("width"), acc = s.dataset.acc, P = protReady.get(acc);
+      parts.push(`<text x="8" y="${y + 16}" ${F("chart", 14, 700)} fill="${protColour(acc)}">${esc((P && P.gene) || acc)}</text><text x="${8 + textW((P && P.gene) || acc, fz("chart", 14), 700) + 8}" y="${y + 16}" ${F("chart", 11)} fill="${FC("chart", "#5B6370")}">${esc(acc)} · ${esc((P && P.name) || "")}</text>`);
+      parts.push(`<g transform="translate(0 ${y + 10 + fz("chart", 14)})">${s.innerHTML}</g>`); y += h + 20 + fz("chart", 14); W = Math.max(W, w); });
+    parts.push(`<text x="8" y="${y + 4}" ${F("axis", 9)} fill="${FC("axis", "#8A929E")}">SUMOscape ${VERSION} · ${esc(ds.source || "")} · UniProt ${esc(MANIFEST.annotation?.uniprot_release || "")}</text>`);
+    return { svg: `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${y + 12}" viewBox="0 0 ${W} ${y + 12}" font-family="${famCSS()}"><rect width="100%" height="100%" fill="#fff"/>${parts.join("")}</svg>`, w: W, h: y + 12 };
+  }
+  if (S.tab === "scatter") {
+    const W = +$("scsvg").getAttribute("width"), img = $("sccanvas").toDataURL("image/png");
+    return { svg: `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="${W}" height="${W}" font-family="${famCSS()}"><rect width="100%" height="100%" fill="#fff"/><image href="${img}" x="0" y="0" width="${W}" height="${W}"/>${$("scsvg").innerHTML}</svg>`, w: W, h: W };
+  }
+  if (S.tab === "heat") { const s = $("heatsvg"); if (!s) return null; return { svg: `<svg xmlns="http://www.w3.org/2000/svg" width="${s.getAttribute("width")}" height="${s.getAttribute("height")}" font-family="${famCSS()}"><rect width="100%" height="100%" fill="#fff"/>${s.innerHTML}</svg>`, w: +s.getAttribute("width"), h: +s.getAttribute("height") }; }
+  return null;
+}
+function fileStem() { const g = added.map(a => (protReady.get(a) || {}).gene || a).slice(0, 4).join("_") || "sumoscape"; return `SUMOscape_${S.tab}_${g}`; }
+
+// ---------------------------------------------------------------- figure fonts panel
+function renderFontPanel() {
+  const fam = Object.keys(FONT_FAMILIES).map(k => `<option${k === FONTS.family ? " selected" : ""} style="font-family:${FONT_FAMILIES[k].replace(/"/g, "")}">${esc(k)}</option>`).join("");
+  const preset = Object.keys(FONT_PRESETS).map(k => `<option>${esc(k)}</option>`).join("");
+  const roles = Object.entries(FONT_ROLES).map(([r, d]) => {
+    const f = FONTS[r], style = `font-family:${famCSS().replace(/"/g, "")};font-size:${Math.min(18, f.size)}px;font-weight:${f.bold ? 700 : 400};font-style:${f.italic ? "italic" : "normal"}`;
+    const sample = r === "site" ? "K524 · RANGAP1 K524" : r === "axis" ? "−1  0  +1 · 100  200 · Z-score" : "MG132 · Toprim · Domains";
+    return `<div class="frole"><div class="frow"><b>${esc(d.label)}</b><div class="fctl">
+        <input type="range" min="5" max="30" step="0.5" value="${f.size}" data-fsize="${r}" aria-label="${esc(d.label)} size">
+        <input type="number" min="5" max="30" step="0.5" value="${f.size}" data-fsize="${r}" aria-label="${esc(d.label)} size in px">
+        <button class="tog" data-fbold="${r}" aria-pressed="${f.bold}" title="Bold"><b>B</b></button>
+        <button class="tog" data-fital="${r}" aria-pressed="${f.italic}" title="Italic"><i>I</i></button></div></div>
+      <small>${esc(d.hint)}</small><div class="fsample" style="${style}">${esc(sample)}</div></div>`;
+  }).join("");
+  $("fontpanel").innerHTML = `<h3>Figure fonts <a class="hl" href="#help/export/fonts" data-help="export/fonts" title="Help: figure fonts">ⓘ</a><button id="fontclose" aria-label="Close">×</button></h3>
+    <div class="frow"><span>Font</span><select id="ffamily" aria-label="Font family">${fam}</select></div>
+    <div class="frow"><span>Preset</span><select id="fpreset" aria-label="Preset"><option value="">choose…</option>${preset}</select></div>
+    ${roles}
+    <div class="fbar"><label><input type="checkbox" id="fdark"${FONTS.dark ? " checked" : ""}> black text (no grey)</label>
+      <button class="btn sm" id="freset" style="margin-left:auto">Reset</button></div>
+    <div class="note">Sizes are in px; one px is one pt when the SVG is placed at 100 % in Illustrator or Inkscape. The views change as you go, and the downloads (SVG, PNG) carry the same fonts. Kept in this browser.</div>`;
+}
+function setFonts(next, { redrawPanel = true } = {}) {
+  FONTS = next;
+  try { localStorage.setItem("sumoscape.fonts", JSON.stringify(FONTS)); } catch (e) {}
+  if (redrawPanel) renderFontPanel();
+  else for (const el of document.querySelectorAll("#fontpanel .fsample")) { const r = el.closest(".frole").querySelector("[data-fsize]").dataset.fsize, f = FONTS[r]; el.style.fontSize = Math.min(18, f.size) + "px"; }
+  clearTimeout(setFonts._t);
+  setFonts._t = setTimeout(() => { if (S.tab !== "structure") renderAll(); }, 60);
+}
+function initFonts() {
+  const btn = $("fontbtn"), pan = $("fontpanel");
+  const open = on => { pan.hidden = !on; btn.setAttribute("aria-expanded", on); if (on) renderFontPanel(); };
+  btn.addEventListener("click", () => open(pan.hidden));
+  document.addEventListener("keydown", e => { if (e.key === "Escape" && !pan.hidden && !$("help").open) open(false); });
+  pan.addEventListener("click", e => {
+    if (e.target.closest("#fontclose")) { open(false); return; }
+    if (e.target.closest("#freset")) { setFonts(fontsFromPreset("Screen (default)")); return; }
+    const b = e.target.closest("[data-fbold], [data-fital]"); if (!b) return;
+    const f = structuredClone(FONTS), r = b.dataset.fbold || b.dataset.fital, k = b.dataset.fbold ? "bold" : "italic";
+    f[r][k] = !f[r][k]; setFonts(f);
+  });
+  pan.addEventListener("input", e => {
+    const t = e.target;
+    if (t.dataset.fsize) {
+      const v = Math.min(30, Math.max(5, +t.value || FONT_ROLES[t.dataset.fsize].def)), f = structuredClone(FONTS);
+      f[t.dataset.fsize].size = v;
+      pan.querySelectorAll(`[data-fsize="${t.dataset.fsize}"]`).forEach(x => { if (x !== t) x.value = v; });
+      setFonts(f, { redrawPanel: false });
+    }
+  });
+  pan.addEventListener("change", e => {
+    const t = e.target, f = structuredClone(FONTS);
+    if (t.id === "ffamily") { f.family = t.value; setFonts(f); }
+    else if (t.id === "fpreset" && t.value) setFonts(fontsFromPreset(t.value));
+    else if (t.id === "fdark") { f.dark = t.checked; setFonts(f); }
+  });
+}
+function initExport() {
+  $("expsvg").addEventListener("click", () => { const r = currentSVG(); if (!r) { toast(S.tab === "structure" ? "Use the camera button of the structure view for a screenshot." : "Nothing to export."); return; } download(fileStem() + ".svg", new Blob([r.svg], { type: "image/svg+xml" })); });
+  $("exppng").addEventListener("click", () => {
+    const r = currentSVG(); if (!r) { toast(S.tab === "structure" ? "Use the camera button of the structure view for a screenshot." : "Nothing to export."); return; }
+    const img = new Image(), k = 2; img.onload = () => { const c = document.createElement("canvas"); c.width = r.w * k; c.height = r.h * k; const g = c.getContext("2d"); g.scale(k, k); g.drawImage(img, 0, 0); c.toBlob(b => download(fileStem() + ".png", b)); };
+    img.src = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(r.svg);
+  });
+  $("expcsv").addEventListener("click", () => {
+    if (!tableRows.length) { toast("The table is empty."); return; }
+    const cs = ds.conditions, head = ["accession", "gene", "position", "motif"].concat(cs.map(c => "z_" + c.id), cs.filter(c => c.lfc).map(c => "lfc_" + c.id), cs.filter(c => c.q).map(c => "q_" + c.id));
+    const lines = [head.join(",")].concat(tableRows.map(s => [s.acc, s.gene || "", s.pos, s.motif].concat(cs.map(c => s.z[c.id] ?? ""), cs.filter(c => c.lfc).map(c => s.lfc[c.id] ?? ""), cs.filter(c => c.q).map(c => s.q[c.id] ?? "")).join(",")));
+    download(fileStem().replace(/_(map|scatter|heat|structure)_/, "_sites_") + ".csv", new Blob([`# SUMOscape ${VERSION}; ${ds.source}\n` + lines.join("\n")], { type: "text/csv" }));
+  });
+}
+
+// ---------------------------------------------------------------- tabs, rendering, URL
+function setTab(t) {
+  S.tab = t;
+  document.querySelectorAll("#tabs .tab").forEach(b => b.setAttribute("aria-selected", b.dataset.tab === t));
+  for (const [k, id] of [["map", "mappane"], ["scatter", "scatterpane"], ["heat", "heatpane"], ["structure", "structpane"]]) $(id).hidden = k !== t;
+  renderAll();
+}
+function renderAll() {
+  renderControls();
+  if (S.tab === "map") renderMap();
+  else if (S.tab === "scatter") { tipStore.length = 0; renderScatter(); }
+  else if (S.tab === "heat") { tipStore.length = 0; renderHeat(); }
+  else if (S.tab === "structure") renderStructure();
+  renderTable(); renderDetail(); syncUrl();
+}
+function stateQuery() {
+  const p = new URLSearchParams();
+  if (ds && ds.id !== DSI.default && !ds.user) p.set("d", ds.id);
+  if (added.length) p.set("p", added.join(","));
+  if (active && active !== added[added.length - 1]) p.set("a", active);
+  if (S.tab !== "map") p.set("tab", S.tab);
+  if (ds && S.conds.size !== ds.conditions.length) p.set("c", [...S.conds].join(","));
+  if (S.colour !== "cond") p.set("colour", S.colour);
+  if (S.labels !== "auto") p.set("labels", S.labels);
+  if (S.size !== "comfortable") p.set("size", S.size);
+  if (S.hide.size) p.set("hide", [...S.hide].join(","));
+  if (ds && (S.x !== "mg132" || S.y !== "hs") && ds.id === "human_hendriks2018") { p.set("x", S.x); p.set("y", S.y); }
+  if (S.site) p.set("site", `${S.site.acc}:${S.site.pos}`);
+  return p.toString().replace(/%2C/g, ",").replace(/%3A/g, ":");
+}
+function syncUrl() { if (ds && ds.user) return; const q = stateQuery(), h = location.hash.startsWith("#help") ? location.hash : ""; history.replaceState(null, "", (q ? "?" + q : location.pathname) + h); }
+function readUrlState() { const p = new URLSearchParams(location.search); const g = k => p.get(k); return { d: g("d"), p: g("p") ? g("p").split(",").filter(Boolean) : [], a: g("a"), tab: g("tab"), c: g("c") ? g("c").split(",") : null, colour: g("colour"), labels: g("labels"), size: g("size"), hide: g("hide") ? g("hide").split(",") : [], x: g("x"), y: g("y"), site: g("site") }; }
+
+// ---------------------------------------------------------------- help
+function initHelp() {
+  const nav = $("hnav"), secs = [...document.querySelectorAll("#hcontent section[data-topic]")];
+  nav.innerHTML = secs.map(s => `<button data-topic="${s.dataset.topic}">${esc(s.dataset.title)}</button>` + [...s.querySelectorAll("article[data-entry]")].map(a => `<a href="#help/${s.dataset.topic}/${a.dataset.entry}" data-help="${s.dataset.topic}/${a.dataset.entry}">${esc(a.querySelector("h3").textContent)}</a>`).join("")).join("");
+  nav.addEventListener("click", e => { const b = e.target.closest("button[data-topic]"); if (b) openHelp(b.dataset.topic); });
+  document.addEventListener("click", e => { const a = e.target.closest("[data-help]"); if (!a) return; e.preventDefault(); openHelp(a.dataset.help); });
+  $("helpbtn").addEventListener("click", () => openHelp(""));
+  $("hclose").addEventListener("click", () => $("help").close());
+  $("help").addEventListener("close", () => { if (location.hash.startsWith("#help")) history.replaceState(null, "", location.pathname + location.search); });
+  document.addEventListener("keydown", e => { if (e.key === "?" && !/INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName)) { e.preventDefault(); openHelp(""); } });
+  $("hsearch").addEventListener("input", () => {
+    const q = $("hsearch").value.trim().toLowerCase(), res = $("hresults");
+    if (q.length < 2) { res.hidden = true; secs.forEach(s => s.hidden = s.dataset.topic !== (helpTopic || "start")); return; }
+    const hits = [];
+    for (const s of secs) for (const a of s.querySelectorAll("article")) { const t = a.textContent.toLowerCase(); if (t.includes(q)) { const i = t.indexOf(q); hits.push(`<a class="hit" href="#help/${s.dataset.topic}/${a.dataset.entry}" data-help="${s.dataset.topic}/${a.dataset.entry}"><b>${esc(a.querySelector("h3").textContent)}</b> <small>${esc(s.dataset.title)} — …${esc(a.textContent.slice(Math.max(0, i - 50), i + 90).replace(/\s+/g, " "))}…</small></a>`); } }
+    secs.forEach(s => s.hidden = true); res.hidden = false; res.innerHTML = hits.join("") || `<p class="dim">Nothing found.</p>`;
+  });
+  fillHelpNumbers();
+}
+let helpTopic = "start", changelogLoaded = false;
+function openHelp(target = "") {
+  const [topic, entry] = (target || "start").split("/");
+  helpTopic = topic || "start";
+  const secs = document.querySelectorAll("#hcontent section[data-topic]");
+  $("hresults").hidden = true; $("hsearch").value = "";
+  secs.forEach(s => s.hidden = s.dataset.topic !== helpTopic);
+  document.querySelectorAll("#hnav button").forEach(b => b.classList.toggle("active", b.dataset.topic === helpTopic));
+  if (!$("help").open) $("help").showModal();
+  if (helpTopic === "changelog") { loadChangelog(); try { localStorage.setItem("sumoscape.seen", VERSION); } catch (e) {} $("vernew").hidden = true; }
+  const art = entry && document.querySelector(`section[data-topic="${helpTopic}"] article[data-entry="${entry}"]`);
+  if (art) { art.scrollIntoView({ block: "start" }); art.classList.remove("flash"); void art.offsetWidth; art.classList.add("flash"); } else $("hcontent").scrollTop = 0;
+  history.replaceState(null, "", location.pathname + location.search + "#help" + (target ? "/" + target : ""));
+}
+function fillHelpNumbers() {
+  const s = MANIFEST.sites || {}, a = MANIFEST.annotation || {};
+  const hum = INDEX.filter(r => r[4] > 0).length, mou = INDEX.filter(r => r[5] > 0).length;
+  const vals = { human_sites: (s.human || 0).toLocaleString(), mouse_sites: (s.mouse || 0).toLocaleString(), human_proteins: hum.toLocaleString(), mouse_proteins: mou.toLocaleString(), uniprot_release: a.uniprot_release || "?", maxadd: MAX_ADD };
+  document.querySelectorAll("[data-n]").forEach(el => el.textContent = vals[el.dataset.n] ?? "?");
+}
+function mdToHtml(md) {
+  const inline = t => esc(t).replace(/`([^`]+)`/g, "<code>$1</code>").replace(/\*\*([^*]+)\*\*/g, "<b>$1</b>").replace(/\*([^*]+)\*/g, "<i>$1</i>").replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>');
+  const out = []; let list = false;
+  for (const raw of md.split("\n")) {
+    const l = raw.trimEnd();
+    if (/^# /.test(l)) continue;
+    if (/^## /.test(l)) { if (list) { out.push("</ul>"); list = false; } out.push(`<h3>${inline(l.slice(3))}</h3>`); continue; }
+    if (/^[-*] /.test(l)) { if (!list) { out.push("<ul>"); list = true; } out.push(`<li>${inline(l.slice(2))}</li>`); continue; }
+    if (/^\s+\S/.test(l) && list) { out[out.length - 1] = out[out.length - 1].replace(/<\/li>$/, " " + inline(l.trim()) + "</li>"); continue; }
+    if (!l.trim()) { if (list) { out.push("</ul>"); list = false; } out.push(""); continue; }
+    if (list) { out.push("</ul>"); list = false; }
+    if (out.length && out[out.length - 1].startsWith("<p>")) out[out.length - 1] = out[out.length - 1].replace(/<\/p>$/, " " + inline(l) + "</p>");
+    else out.push(`<p>${inline(l)}</p>`);
+  }
+  if (list) out.push("</ul>");
+  return out.join("\n");
+}
+function loadChangelog() {
+  if (changelogLoaded) return; changelogLoaded = true;
+  fetch("CHANGELOG.md", { cache: "no-cache" }).then(r => { if (!r.ok) throw new Error(r.status); return r.text(); })
+    .then(md => $("changelog").innerHTML = `<h2>Changelog</h2>` + mdToHtml(md))
+    .catch(() => { changelogLoaded = false; $("changelog").innerHTML = `<p class="dim">The changelog could not be loaded. It is the file CHANGELOG.md next to this page.</p>`; });
+}
+function fillDatasetMenu() { $("dataset").innerHTML = DSI.datasets.map(d => `<option value="${d.id}">${esc(d.label)}</option>`).join(""); }
+
+// ---------------------------------------------------------------- main
+async function main() {
+  $("ver").textContent = "v" + VERSION;
+  try { const seen = localStorage.getItem("sumoscape.seen"); if (seen && seen !== VERSION) $("vernew").hidden = false; if (!seen) localStorage.setItem("sumoscape.seen", VERSION); } catch (e) {}
+  [DSI, MANIFEST] = await Promise.all([getJSON("data/datasets.json"), getJSON("data/manifest.json").catch(() => ({}))]);
+  const pj = await getJSON("data/proteins.json");
+  INDEX = pj.rows;
+  for (const r of INDEX) { idxByAcc.set(r[0], r); for (const g of [r[1]]) if (g) { const k = g.toUpperCase(); (geneIdx.get(k) || geneIdx.set(k, []).get(k)).push(r[0]); } }
+  $("uprel").textContent = MANIFEST.annotation?.uniprot_release ? `release ${MANIFEST.annotation.uniprot_release}` : "";
+  fillDatasetMenu();
+  const st = readUrlState();
+  if (st.colour && COLOURINGS.some(c => c[0] === st.colour)) S.colour = st.colour;
+  if (["auto", "all", "sig", "none"].includes(st.labels)) S.labels = st.labels;
+  if (["comfortable", "compact"].includes(st.size)) S.size = st.size;
+  S.hide = new Set(st.hide);
+  await loadDataset(st.d || DSI.default, st);
+  initHelp(); initControls(); initMapInteraction(); initScatter(); initTable(); initBrowse(); initUser(); initExport(); initFonts();
+  document.querySelectorAll("#tabs .tab").forEach(b => b.addEventListener("click", () => setTab(b.dataset.tab)));
+  $("linkbtn").addEventListener("click", async () => { syncUrl(); try { await navigator.clipboard.writeText(location.href.split("#")[0]); toast("Link copied."); } catch (e) { toast("Copy the address from the address bar."); } });
+  $("ovbtn").addEventListener("click", () => { renderOverview(); $("overview").showModal(); });
+  $("ovclose").addEventListener("click", () => $("overview").close());
+  let rt; window.addEventListener("resize", () => { clearTimeout(rt); rt = setTimeout(() => { if (S.tab !== "structure") renderAll(); }, 150); });
+  const deep = location.hash;
+  if (st.p.length) { await addProteins(st.p, { activate: false, quiet: true }); if (st.a && added.includes(st.a)) active = st.a; }
+  if (st.site) { const [a, p] = st.site.split(":"); if (a && +p) S.site = { acc: a, pos: +p }; }
+  if (st.tab && ["map", "scatter", "heat", "structure"].includes(st.tab)) setTab(st.tab); else renderAll();
+  if (deep.startsWith("#help")) openHelp(deep.slice(6));
+  window.__sumoscape = { S, get added() { return added; }, get active() { return active; }, addProteins, selectSite, setTab, stateQuery, get ds() { return ds; }, protReady, buildMapSVG, openHelp };
+}
+main().catch(e => { console.error(e); document.getElementById("mapwrap").innerHTML = `<div id="empty"><p><b>SUMOscape could not start:</b> ${esc(e.message)}</p><p>Open the page through a web server (for example <code>python -m http.server</code> in the project folder) rather than as a file, so that the data can be read.</p></div>`; });
+</script>
+</body>
+</html>

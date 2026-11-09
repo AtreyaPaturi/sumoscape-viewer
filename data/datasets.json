@@ -1,0 +1,123 @@
+{
+ "default": "human_hendriks2018",
+ "datasets": [
+  {
+   "id": "human_hendriks2018",
+   "label": "Human cells \u2014 control, MG132, heat shock",
+   "organism": "Homo sapiens",
+   "file": "sites_human_hendriks2018.json",
+   "source": "Hendriks IA et al., Nat Commun 9:2456 (2018), Supplementary Data 1",
+   "doi": "10.1038/s41467-018-04957-4",
+   "licence": "CC BY 4.0",
+   "description": "Endogenous SUMO2/3 sites in HEK293, HeLa and U2OS; quantified in HEK293 under control, proteasome inhibition (MG132) and heat shock.",
+   "conditions": [
+    {
+     "id": "control",
+     "label": "Control",
+     "z": "z_control",
+     "colour": "#4477AA"
+    },
+    {
+     "id": "mg132",
+     "label": "MG132",
+     "z": "z_mg132",
+     "lfc": "lfc_mg132",
+     "q": "q_mg132",
+     "colour": "#EE6677"
+    },
+    {
+     "id": "hs",
+     "label": "Heat shock",
+     "z": "z_hs",
+     "lfc": "lfc_hs",
+     "q": "q_hs",
+     "colour": "#CCBB44"
+    }
+   ],
+   "detection": [
+    "HEK293",
+    "HeLa",
+    "U2OS"
+   ],
+   "zscore_note": "Z-scores are standardised per site across the three conditions: for every site Z(control) + Z(MG132) + Z(heat shock) = 0."
+  },
+  {
+   "id": "mouse_hendriks2018",
+   "label": "Mouse organs \u2014 8 tissues",
+   "organism": "Mus musculus",
+   "file": "sites_mouse_hendriks2018.json",
+   "source": "Hendriks IA et al., Nat Commun 9:2456 (2018), Supplementary Data 5",
+   "doi": "10.1038/s41467-018-04957-4",
+   "licence": "CC BY 4.0",
+   "description": "Endogenous SUMO2/3 sites in vivo across eight mouse organs.",
+   "conditions": [
+    {
+     "id": "brain",
+     "label": "Brain",
+     "z": "z_brain",
+     "present": "in_brain",
+     "q": "anova_q",
+     "colour": "#E15759"
+    },
+    {
+     "id": "heart",
+     "label": "Heart",
+     "z": "z_heart",
+     "present": "in_heart",
+     "q": "anova_q",
+     "colour": "#4E79A7"
+    },
+    {
+     "id": "kidney",
+     "label": "Kidney",
+     "z": "z_kidney",
+     "present": "in_kidney",
+     "q": "anova_q",
+     "colour": "#59A14F"
+    },
+    {
+     "id": "liver",
+     "label": "Liver",
+     "z": "z_liver",
+     "present": "in_liver",
+     "q": "anova_q",
+     "colour": "#B07AA1"
+    },
+    {
+     "id": "lung",
+     "label": "Lung",
+     "z": "z_lung",
+     "present": "in_lung",
+     "q": "anova_q",
+     "colour": "#F28E2B"
+    },
+    {
+     "id": "muscle",
+     "label": "Muscle",
+     "z": "z_muscle",
+     "present": "in_muscle",
+     "q": "anova_q",
+     "colour": "#76B7B2"
+    },
+    {
+     "id": "spleen",
+     "label": "Spleen",
+     "z": "z_spleen",
+     "present": "in_spleen",
+     "q": "anova_q",
+     "colour": "#EDC948"
+    },
+    {
+     "id": "testis",
+     "label": "Testis",
+     "z": "z_testis",
+     "present": "in_testis",
+     "q": "anova_q",
+     "colour": "#9C755F"
+    }
+   ],
+   "detection": [],
+   "zscore_note": "Z-scores are standardised per site across the eight organs; q is the ANOVA q-value across organs."
+  }
+ ]
+}

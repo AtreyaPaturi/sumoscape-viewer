@@ -1,0 +1,34 @@
+cff-version: 1.2.0
+message: "If you use SUMOscape, please cite it and the data source below."
+title: "SUMOscape: a viewer for site-resolved SUMO2/3 proteomics"
+version: 0.3.1
+date-released: 2026-11-09
+authors:
+  - family-names: Paturi
+    given-names: Atreya
+    affiliation: "Pichler Group, ETH Zurich"
+license: MIT
+url: "https://atreyapaturi.github.io/sumoscape-viewer/"
+references:
+  - type: article
+    title: "Site-specific characterization of endogenous SUMOylation across species and organs"
+    authors:
+      - family-names: Hendriks
+        given-names: Ivo A.
+      - family-names: Lyon
+        given-names: David
+      - family-names: Su
+        given-names: Dan
+      - family-names: Skotte
+        given-names: Niels H.
+      - family-names: Daniel
+        given-names: Jeremy A.
+      - family-names: Jensen
+        given-names: Lars J.
+      - family-names: Nielsen
+        given-names: Michael L.
+    journal: "Nature Communications"
+    volume: 9
+    start: 2456
+    year: 2018
+    doi: "10.1038/s41467-018-04957-4"
