@@ -1,8 +1,8 @@
 cff-version: 1.2.0
 message: "If you use SUMOscape, please cite it and the data source below."
 title: "SUMOscape: a viewer for site-resolved SUMO2/3 proteomics"
-version: 0.3.1
-date-released: 2026-11-09
+version: 0.4.0
+date-released: 2026-11-10
 authors:
   - family-names: Paturi
     given-names: Atreya

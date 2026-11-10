@@ -5,6 +5,17 @@ minor number for new features, the patch number for smaller changes and fixes. T
 say what changed for the person using the viewer. This file is the only place the history is
 written; the Changelog page of the in-page help renders it.
 
+## 0.4.0 — 2026-11-10
+- **Room for SUMO2/3.** The Structure view now asks, for every lysine of the AlphaFold model, whether
+  a SUMO2 has the space to sit there: the calculation of the Ribosome SUMO Viewer (Bernhard Buss),
+  ported unchanged and run in your browser (18,432 placements of the SUMO2 core per lysine; room
+  ≥ 1 %, tight 0.1–1 %, no room < 0.1 %). Colour the sites by it, show only the sites with room
+  (or room or tight), and draw SUMO2 at a placement that fits — at the selected site or at every
+  site with room. The bar counts sites and other lysines per class; the site details give the share.
+- **Space-filling model.** *Draw protein as → space-filling* shows every atom of the protein, with
+  the sites painted on its surface; domain and confidence colourings work as before.
+- The Structure bar has a second row for these controls; the choices are kept in the link.
+
 ## 0.3.1 — 2026-11-09
 - **SUMOscape is online.** The viewer is published at https://atreyapaturi.github.io/sumoscape-viewer/ —
   anyone with the link can open it; nothing needs to be installed.

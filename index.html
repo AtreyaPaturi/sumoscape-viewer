@@ -62,10 +62,16 @@
   #scbox { position: relative; display: inline-block; } #sccanvas { position: absolute; left: 0; top: 0; } #scsvg { position: relative; display: block; }
   .sckey { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 12.5px; color: var(--muted); margin-top: 6px; max-width: 760px; }
   .capt { font-size: 12px; color: var(--muted); max-width: 760px; margin-top: 8px; line-height: 1.5; }
-  #structpane { overflow: hidden; } #viewer { position: absolute; inset: 40px 0 0 0; }
-  #structbar { position: absolute; left: 0; right: 0; top: 0; height: 40px; display: flex; gap: 10px; align-items: center; padding: 0 12px; font-size: 13px; border-bottom: 1px solid #eef0f3; background: #fff; z-index: 3; flex-wrap: wrap; }
+  #structpane { overflow: hidden; } #viewer { position: absolute; inset: 72px 0 0 0; }
+  #structbar { position: absolute; left: 0; right: 0; top: 0; min-height: 72px; display: flex; gap: 4px 10px; align-items: center; align-content: center; padding: 4px 12px; font-size: 13px; border-bottom: 1px solid #eef0f3; background: #fff; z-index: 3; flex-wrap: wrap; box-sizing: border-box; }
+  #structbar .brk { flex-basis: 100%; height: 0; }
+  #structbar .rt { font-weight: 600; font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: .03em; }
+  #roommsg { font-size: 12px; color: var(--muted); display: inline-flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  #roommsg .pb { display: inline-block; width: 80px; height: 6px; background: #e6e9ee; border-radius: 3px; overflow: hidden; vertical-align: middle; }
+  #roommsg .pb i { display: block; height: 100%; background: #44AA99; }
+  #roommsg .sw { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 3px; vertical-align: -1px; }
   #structbar select { font: inherit; font-size: 13px; padding: 3px 6px; border: 1px solid var(--line); border-radius: 5px; }
-  #structmsg { position: absolute; left: 12px; top: 52px; z-index: 4; background: rgba(255,255,255,.94); border: 1px solid var(--line); border-radius: 8px; padding: 6px 10px; font-size: 12.5px; color: var(--muted); max-width: 460px; }
+  #structmsg { position: absolute; left: 12px; top: 84px; z-index: 4; background: rgba(255,255,255,.94); border: 1px solid var(--line); border-radius: 8px; padding: 6px 10px; font-size: 12.5px; color: var(--muted); max-width: 460px; }
   #structmsg[hidden] { display: none; }
   #structlegend { position: absolute; right: 12px; bottom: 12px; z-index: 4; background: rgba(255,255,255,.95); border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; font-size: 12px; max-width: 340px; max-height: 55%; overflow: auto; }
   #structlegend[hidden] { display: none; }
@@ -231,8 +237,26 @@
           <option value="plddt">confidence (pLDDT)</option>
         </select></label>
         <a class="hl" href="#help/structure/domains" data-help="structure/domains" title="Help: domains on the structure">ⓘ</a>
+        <label>draw protein as <select id="ststyle">
+          <option value="cartoon">cartoon</option>
+          <option value="spacefill">space-filling</option>
+        </select></label>
         <label><input type="checkbox" id="stlabels" checked> labels</label>
         <a class="hl" href="#help/structure/what" data-help="structure/what" title="Help: the structure view">ⓘ</a>
+        <span class="brk"></span>
+        <b class="rt">Room for SUMO2/3</b>
+        <label>show <select id="stroom">
+          <option value="all">all sites</option>
+          <option value="room">only sites with room</option>
+          <option value="tight">sites with room or tight</option>
+        </select></label>
+        <label>SUMO at <select id="stsumo">
+          <option value="off">no site</option>
+          <option value="selected">the selected site</option>
+          <option value="room">every site shown with room</option>
+        </select></label>
+        <a class="hl" href="#help/structure/room" data-help="structure/room" title="Help: room for SUMO">ⓘ</a>
+        <span id="roommsg"></span>
       </div>
       <div id="viewer"></div>
       <div id="structmsg" hidden></div>
@@ -445,6 +469,13 @@
             <p><i>colour protein by → domains (UniProt)</i> or <i>Pfam domains</i> paints every annotated domain on the model. A domain that contains at least one of the sites shown gets its own colour and, with <i>labels</i> on, its name and number of sites in the 3D view; a domain without sites is drawn in pale grey, and the rest of the chain in near-white. UniProt domains include repeats, zinc fingers, DNA-binding regions and coiled coils; a domain nested in another is drawn on top.</p>
             <p>The legend at the bottom right lists the domains with sites first — range, number of sites and how many of them have q &lt; 0.05 in any condition — then those without. A click on a domain zooms to it; a second click shows the whole model again. Sites hidden through the legend of the site colouring are not counted. When the dataset's sequence differs from the model's, a domain is placed by its residues and marked <i>not placed</i> if they are not found once in the model.</p>
             <p>"Carries a site" means a SUMO acceptor lysine of the dataset lies inside the domain's boundaries; it says nothing about how much of the protein is modified there.</p></article>
+          <article data-entry="style"><h3>Cartoon or space-filling</h3>
+            <p><i>draw protein as → space-filling</i> draws every atom of the model as a sphere of its van der Waals size, so you see the protein's surface and how exposed each lysine is. The site lysines are then painted onto the surface in their colour (the selected site slightly enlarged); the protein colourings (domains, Pfam, confidence) work in both styles. A SUMO2 drawn at a site follows the same style.</p></article>
+          <article data-entry="room"><h3>Room for SUMO2/3</h3>
+            <p>For every lysine of the model, SUMOscape asks whether there is physical space next to it for a SUMO2/3 to sit. This is the calculation of the Ribosome SUMO Viewer (Bernhard Buss, ETH Zurich), ported unchanged, with the same placement set and classes; it runs in your browser when a protein is shown here (a few seconds for most proteins) and the progress is shown in the bar.</p>
+            <p><b>How.</b> The folded core of SUMO2 (residues 17–88 of PDB 1WM3) is held rigid; the C-terminal tail (89–93 and the isopeptide bond) is treated as a straight tether of 6–19 Å from the lysine's NZ. 48 tether directions × 4 lengths × 96 orientations of the core give 18,432 placements. A placement is possible when the glycine bonded to the lysine (2.4 Å from NZ) has 3 Å of space, the tether line is free, and no backbone or Cβ atom of the SUMO core comes within 2.2 Å of an atom of the protein (on a 0.6 Å grid). The share of possible placements gives the class: <span style="color:#44AA99">■</span> <b>room</b> ≥ 1 %, <span style="color:#DDCC77">■</span> <b>tight</b> 0.1–1 %, <span style="color:#332288">■</span> <b>no room</b> &lt; 0.1 %.</p>
+            <p><b>Controls.</b> <i>colour sites by → Room for SUMO</i> colours the sites by class; <i>show</i> keeps only the sites with room (or room or tight); <i>SUMO at</i> draws the SUMO2 core (green) at a placement that fits — the tether direction nearest to the mean of all possible ones, the core turned away from the protein — at the selected site or at every site shown with room (up to 60). The bar counts the sites and the other lysines in each class; the site details give the share.</p>
+            <p><b>Read it with care.</b> The test is lenient by design: only the SUMO backbone and Cβ are tested, so <i>room</i> means "a SUMO could fit", while <i>no room</i> is the firm statement — and only for this one rigid conformation. The model is the unmodified, monomeric AlphaFold prediction: partners, other conformations and flexible loops are not considered, low-confidence regions (often where SUMO sites are) are taken as placed, the tail cannot bend around obstacles, and the access of the conjugating enzyme UBC9 is not tested. The share of placements is not a probability.</p></article>
           <article data-entry="limits"><h3>What a predicted structure can and cannot say</h3>
             <p>AlphaFold models are predictions of the unmodified, monomeric protein. Low-confidence (pLDDT &lt; 50) regions are usually disordered and should not be read as a fold; many SUMO sites lie in such regions. Nothing about SUMO itself, partners, or the conjugated state is in the model.</p></article>
           <article data-entry="model"><h3>Modelling a SUMO conjugate (in preparation)</h3>
@@ -523,12 +554,12 @@
             <p>When you use SUMOscape, please cite the data source: Hendriks IA et al., Nat Commun 9:2456 (2018), doi:10.1038/s41467-018-04957-4, and name the SUMOscape version (top right).</p></article>
           <article data-entry="licence"><h3>Licence</h3>
             <p>SUMOscape is open source under the MIT licence: © 2026 Pichler Group, ETH Zurich; author Atreya Paturi. Anyone may use, copy, modify and share it, provided the copyright notice and the licence text are kept. See the file <code>LICENSE</code> next to this page.</p>
-            <p>Third-party data keep their own licences: Hendriks et al. 2018 supplementary data (CC BY 4.0), UniProt (CC BY 4.0), InterPro/Pfam (CC0), AlphaFold DB (CC BY 4.0). Mol* is MIT-licensed.</p></article>
+            <p>Third-party data keep their own licences: Hendriks et al. 2018 supplementary data (CC BY 4.0), UniProt (CC BY 4.0), InterPro/Pfam (CC0), AlphaFold DB (CC BY 4.0). Mol* is MIT-licensed. The room-for-SUMO calculation and its placement set (<code>data/fit.json</code>) come from the Ribosome SUMO Viewer, © 2026 ETH Zurich (Bernhard Buss), MIT licence; the SUMO2 structure drawn is PDB 1WM3 (Huang et al. 2004).</p></article>
           <article data-entry="versions"><h3>Versions</h3>
             <p>The version next to the title is raised with every change of what the viewer can do: the minor number for new features, the patch number for fixes. The <a data-help="changelog" href="#help/changelog">Changelog</a> lists what changed for the user; a <i>new</i> badge shows once after an update.</p></article>
           <article data-entry="roadmap"><h3>Roadmap</h3>
             <ul>
-              <li><b>SUMO-conjugate structures</b>: for each site, predict the structure with SUMO2 attached (Boltz-2 / AlphaFold 3 / Chai-1), and compare with the unmodified model — RMSD of the protein, change in pLDDT and PAE around the site, solvent accessibility, new contacts of SUMO, and whether the SUMO can sit there at all (room-for-SUMO test as in the Ribosome SUMO Viewer).</li>
+              <li><b>SUMO-conjugate structures</b>: for each site, predict the structure with SUMO2 attached (Boltz-2 / AlphaFold 3 / Chai-1), and compare with the unmodified model — RMSD of the protein, change in pLDDT and PAE around the site, solvent accessibility, new contacts of SUMO, and whether the conjugating enzyme UBC9 can reach the lysine (the room-for-SUMO test is in the Structure view since 0.4.0).</li>
               <li>PDB entries and complexes besides the AlphaFold monomer.</li>
               <li>More datasets (further site-level SUMO proteomics studies) through the dataset format.</li>
             </ul></article>
@@ -542,9 +573,159 @@
   </div>
 </dialog>
 
+<script type="text/plain" id="fitworker">
+// Ported unchanged from the Ribosome SUMO Viewer v0.13.1 (Bernhard Buss, ETH Zurich; MIT licence, Copyright (c) 2026 ETH Zurich).
+// Room for SUMO at the lysines of a structure, computed in a worker thread of the browser: a port of the
+// pipeline's python/sumostruct/fit.py. The placement set (the SUMO core, its orientations, the tether
+// directions and lengths, the parameters) arrives from data/fit.json, so that the browser samples exactly
+// what the pipeline samples. The atoms are kept apart by group (one group per chain, as bits of one
+// occupancy grid, like fit.py's particles and subunits), so that one sampling per lysine answers two
+// questions: the room in the structure as it is, and the room on the lysine's own chain alone.
+//   in:  { type: "setup", sampler }
+//        { type: "fit", atoms: { n, X, seq, side, asym }, lys: [{ id, seq, k, g }], nGroups }
+//             X: coordinates (3n), seq: residue number, side: 1 for a lysine side-chain atom, asym: group (chain) index
+//             per atom; a lysine: its id, residue, NZ atom index k and group g
+//   out: { type: "progress", done, total } after every lysine
+//        { type: "done", results: [{ id, fit, fit_alone, pose, pose_without }], ms }
+let S = null;
+const LOST_SHARE = 0.005;    // a placement "without the other chains" is kept when taking them away opens at least this share
+function setup(d) {
+  const p = d.params, R = d.rotations.length, body = d.sumo.body, M = body.length, anchor = d.sumo.anchor;
+  const rel = body.map(a => [a[0] - anchor[0], a[1] - anchor[1], a[2] - anchor[2]]);
+  const clouds = new Float32Array(R * M * 3), centre = new Float32Array(R * 3), rot = new Float64Array(R * 9);
+  for (let r = 0; r < R; r++) {
+    const q = d.rotations[r]; for (let j = 0; j < 9; j++) rot[9 * r + j] = q[j];
+    let cx = 0, cy = 0, cz = 0;
+    for (let m = 0; m < M; m++) {
+      const v = rel[m], x = q[0] * v[0] + q[1] * v[1] + q[2] * v[2], y = q[3] * v[0] + q[4] * v[1] + q[5] * v[2], z = q[6] * v[0] + q[7] * v[1] + q[8] * v[2];
+      const o = (r * M + m) * 3; clouds[o] = x; clouds[o + 1] = y; clouds[o + 2] = z; cx += x; cy += y; cz += z;
+    }
+    centre[3 * r] = cx / M; centre[3 * r + 1] = cy / M; centre[3 * r + 2] = cz / M;
+  }
+  const dirs = d.directions, L = d.lengths, D = dirs.length * L.length;      // D = directions x lengths, the length varying fastest (fit.py: repeat / tile)
+  const unit = new Float32Array(D * 3), len = new Float32Array(D);
+  for (let i = 0; i < dirs.length; i++) for (let j = 0; j < L.length; j++) { const k = i * L.length + j; unit[3 * k] = dirs[i][0]; unit[3 * k + 1] = dirs[i][1]; unit[3 * k + 2] = dirs[i][2]; len[k] = L[j]; }
+  const steps = []; for (let s = p.path_skip; s < p.tether[1]; s += p.path_step) steps.push(s);   // points tested along the tether line
+  let reach = 0; for (const v of rel) reach = Math.max(reach, Math.hypot(v[0], v[1], v[2]));
+  S = { p, R, M, clouds, centre, rot, anchor, D, unit, len, steps, reach, total: D * R };
+}
+// Which voxels lie within the clash distance of an atom, one bit per group of atoms (fit.py's Grid): a
+// voxel takes an atom's bit when its centre is within `clash` of the atom. idx = the atoms to put in,
+// bitOf = the bit of each atom.
+function makeGrid(X, idx, bitOf, clash, voxel, limit) {
+  const pad = clash + 2 * voxel, mn = [Infinity, Infinity, Infinity], mx = [-Infinity, -Infinity, -Infinity];
+  for (let t = 0; t < idx.length; t++) { const i = idx[t]; for (let c = 0; c < 3; c++) { const v = X[3 * i + c]; if (v < mn[c]) mn[c] = v; if (v > mx[c]) mx[c] = v; } }
+  const org = mn.map(v => v - pad), shape = [0, 1, 2].map(c => Math.ceil((mx[c] + pad - org[c]) / voxel) + 1);
+  const size = shape[0] * shape[1] * shape[2];
+  if (size > limit) return null;
+  const occ = new Uint8Array(size), k = Math.ceil((clash + voxel) / voxel), reach2 = (clash / voxel) ** 2, sy = shape[1], sz = shape[2];
+  const offs = [], f = v => Math.max(Math.abs(v) - 0.5, 0) ** 2;
+  for (let a = -k; a <= k; a++) for (let b = -k; b <= k; b++) for (let c = -k; c <= k; c++) if (f(a) + f(b) + f(c) <= reach2) offs.push([a, b, c]);
+  for (let t = 0; t < idx.length; t++) {
+    const i = idx[t], bit = bitOf[i], rx = (X[3 * i] - org[0]) / voxel, ry = (X[3 * i + 1] - org[1]) / voxel, rz = (X[3 * i + 2] - org[2]) / voxel;
+    const bx = Math.floor(rx), by = Math.floor(ry), bz = Math.floor(rz), fx = rx - bx, fy = ry - by, fz = rz - bz;
+    for (const [a, b, c] of offs) { const dx = a + 0.5 - fx, dy = b + 0.5 - fy, dz = c + 0.5 - fz; if (dx * dx + dy * dy + dz * dz <= reach2) occ[((bx + a) * sy + (by + b)) * sz + (bz + c)] |= bit; }
+  }
+  return { occ, org, shape, voxel, sy, sz };
+}
+function at(g, x, y, z) {                 // the bits of the voxel that holds a point (outside the box: its border voxel, which is empty)
+  let i = Math.floor((x - g.org[0]) / g.voxel), j = Math.floor((y - g.org[1]) / g.voxel), k = Math.floor((z - g.org[2]) / g.voxel);
+  if (i < 0) i = 0; else if (i >= g.shape[0]) i = g.shape[0] - 1;
+  if (j < 0) j = 0; else if (j >= g.shape[1]) j = g.shape[1] - 1;
+  if (k < 0) k = 0; else if (k >= g.shape[2]) k = g.shape[2] - 1;
+  return g.occ[(i * g.sy + j) * g.sz + k];
+}
+// The placements at one NZ (fit.py's fit_at), as the bits of the groups each placement runs into: the
+// tether's end, the points on its line and the glycine bonded to the NZ (tested exactly against the atoms
+// around, without the lysine's own side chain), then every orientation of the core voxel by voxel. A
+// placement is possible for a mask of groups when none of its bits is in the mask. `loosest` = the bits
+// every mask holds (the lysine's own chain): a placement that meets them is impossible for every mask,
+// and its test stops there.
+function fitAt(g, X, nz, near, nearBit, loosest) {
+  const { p, R, M, clouds, D, unit, len, steps } = S, blocked = new Uint8Array(D);
+  const ax = new Float32Array(D), ay = new Float32Array(D), az = new Float32Array(D), fc2 = p.first_clash * p.first_clash;
+  for (let d = 0; d < D; d++) {
+    const ux = unit[3 * d], uy = unit[3 * d + 1], uz = unit[3 * d + 2], l = len[d];
+    ax[d] = nz[0] + ux * l; ay[d] = nz[1] + uy * l; az[d] = nz[2] + uz * l;
+    let b = at(g, ax[d], ay[d], az[d]);
+    for (const s of steps) { if (!(s < l - 1.0)) break; b |= at(g, nz[0] + ux * s, nz[1] + uy * s, nz[2] + uz * s); }
+    const gx = nz[0] + ux * p.first, gy = nz[1] + uy * p.first, gz = nz[2] + uz * p.first;
+    for (let t = 0; t < near.length; t++) { const i = near[t], dx = X[3 * i] - gx, dy = X[3 * i + 1] - gy, dz = X[3 * i + 2] - gz; if (dx * dx + dy * dy + dz * dz < fc2) b |= nearBit[t]; }
+    blocked[d] = b;
+  }
+  const bits = new Uint8Array(D * R).fill(255);
+  for (let d = 0; d < D; d++) {
+    if (blocked[d] & loosest) continue;
+    const x0 = ax[d], y0 = ay[d], z0 = az[d];
+    for (let r = 0; r < R; r++) {
+      const base = r * M * 3; let b = blocked[d];
+      for (let m = 0; m < M; m++) { const o = base + 3 * m; b |= at(g, x0 + clouds[o], y0 + clouds[o + 1], z0 + clouds[o + 2]); if (b & loosest) break; }
+      bits[d * R + r] = b;
+    }
+  }
+  return { bits, ax, ay, az };
+}
+const share = (f, ok) => { let n = 0; for (let i = 0; i < f.bits.length; i++) if (ok(f.bits[i])) n++; return n / f.bits.length; };
+// A placement from the middle of the possible ones (fit.py's pose_of): the tether direction nearest to
+// their mean, the core turned away from the lysine. Rotation row by row + translation, as the pipeline writes it.
+function poseOf(f, ok) {
+  const { R, D, unit, len, centre, rot, anchor } = S, w = new Float32Array(D); let any = false, mx = 0, my = 0, mz = 0;
+  for (let d = 0; d < D; d++) { let c = 0; for (let r = 0; r < R; r++) if (ok(f.bits[d * R + r])) c++; w[d] = c; if (c) any = true; mx += unit[3 * d] * c; my += unit[3 * d + 1] * c; mz += unit[3 * d + 2] * c; }
+  if (!any) return null;
+  const n = Math.hypot(mx, my, mz) || 1; mx /= n; my /= n; mz /= n;
+  let best = -2, bd = -1;
+  for (let d = 0; d < D; d++) { if (!w[d]) continue; const s = unit[3 * d] * mx + unit[3 * d + 1] * my + unit[3 * d + 2] * mz; if (s > best) { best = s; bd = d; } }
+  const dx = unit[3 * bd] * len[bd], dy = unit[3 * bd + 1] * len[bd], dz = unit[3 * bd + 2] * len[bd]; let bs = -2, br = -1;
+  for (let r = 0; r < R; r++) {
+    if (!ok(f.bits[bd * R + r])) continue;
+    const x = dx + centre[3 * r], y = dy + centre[3 * r + 1], z = dz + centre[3 * r + 2], nn = Math.hypot(x, y, z) || 1, s = (x * mx + y * my + z * mz) / nn;
+    if (s > bs) { bs = s; br = r; }
+  }
+  const q = rot.subarray(9 * br, 9 * br + 9), a = anchor;
+  const t = [f.ax[bd] - (q[0] * a[0] + q[1] * a[1] + q[2] * a[2]), f.ay[bd] - (q[3] * a[0] + q[4] * a[1] + q[5] * a[2]), f.az[bd] - (q[6] * a[0] + q[7] * a[1] + q[8] * a[2])];
+  return Array.from(q).concat(t).map(v => v.toFixed(4)).join(" ");
+}
+onmessage = e => {
+  const m = e.data;
+  try {
+    if (m.type === "setup") { setup(m.sampler); return; }
+    if (m.type !== "fit") return;
+    const { n, X, seq, side, asym } = m.atoms, p = S.p, t0 = performance.now(), LIMIT = 6e7, nG = m.nGroups || 1;
+    // one grid for the whole structure, a bit per chain, when the chains fit in a byte and the box is not
+    // too large; otherwise a grid around each lysine with two bits: its own chain and the rest
+    const all = new Int32Array(n); for (let i = 0; i < n; i++) all[i] = i;
+    const bitOfG = new Uint8Array(n); if (nG <= 8) for (let i = 0; i < n; i++) bitOfG[i] = 1 << asym[i];
+    let allBits = 0; if (nG <= 8) for (let gi = 0; gi < nG; gi++) allBits |= 1 << gi;
+    const g = nG <= 8 ? makeGrid(X, all, bitOfG, p.clash, p.voxel, LIMIT) : null;
+    const box = p.first + p.first_clash, half = p.tether[1] + S.reach + p.clash + 2 * p.voxel + 1;
+    const results = [];
+    for (const L of m.lys) {
+      const k = L.k, z = [X[3 * k], X[3 * k + 1], X[3 * k + 2]], near = [], local = [];
+      for (let i = 0; i < n; i++) {
+        const dx = Math.abs(X[3 * i] - z[0]), dy = Math.abs(X[3 * i + 1] - z[1]), dz = Math.abs(X[3 * i + 2] - z[2]);
+        if (dx < box && dy < box && dz < box && !(seq[i] === L.seq && asym[i] === L.g && side[i])) near.push(i);
+        if (!g && dx < half && dy < half && dz < half) local.push(i);
+      }
+      let gl = g, bitOf = bitOfG, own, complex;
+      if (g) { own = 1 << L.g; complex = allBits; }
+      else {
+        bitOf = new Uint8Array(n); for (let t = 0; t < local.length; t++) { const i = local[t]; bitOf[i] = asym[i] === L.g ? 1 : 2; }
+        gl = makeGrid(X, Int32Array.from(local), bitOf, p.clash, p.voxel, Infinity); own = 1; complex = 3;
+      }
+      const nearBit = new Uint8Array(near.length); for (let t = 0; t < near.length; t++) nearBit[t] = bitOf[near[t]];
+      const f = fitAt(gl, X, z, near, nearBit, own);
+      const inComplex = b => (b & complex) === 0, alone = b => (b & own) === 0, lost = b => (b & own) === 0 && (b & complex) !== 0;
+      const fit = share(f, inComplex), fitAlone = share(f, alone);
+      results.push({ id: L.id, fit, fit_alone: fitAlone, pose: poseOf(f, inComplex), pose_without: fitAlone - fit >= LOST_SHARE ? poseOf(f, lost) : null });
+      postMessage({ type: "progress", done: results.length, total: m.lys.length });
+    }
+    postMessage({ type: "done", results, ms: performance.now() - t0 });
+  } catch (err) { postMessage({ type: "error", message: String(err && err.message || err) }); }
+};
+</script>
 <script>
 "use strict";
-const VERSION = "0.3.1";
+const VERSION = "0.4.0";
 const MAX_ADD = 60;
 const PSI = new Set("AILMFVP");
 const $ = id => document.getElementById(id);
@@ -586,7 +767,7 @@ let DSI = null, ds = null, T = null, N = 0, ZMAX = 1.4, MANIFEST = {};
 let byAcc = new Map(), INDEX = [], idxByAcc = new Map(), geneIdx = new Map();
 const protCache = new Map(), protReady = new Map();
 let added = [], active = null;
-const S = { tab: "map", conds: new Set(), colour: "cond", labels: "auto", size: "comfortable", hide: new Set(), x: null, y: null, site: null, stcol: null, sort: null };
+const S = { tab: "map", conds: new Set(), colour: "cond", labels: "auto", size: "comfortable", hide: new Set(), x: null, y: null, site: null, stcol: null, sort: null, ststyle: "cartoon", stroom: "all", stsumo: "off" };
 const zoomOf = new Map();
 const tipStore = [];
 let tableRows = [];
@@ -1243,7 +1424,7 @@ async function afModel(acc) {
     const js = await getJSON(`https://alphafold.ebi.ac.uk/api/prediction/${acc}`), m = Array.isArray(js) ? js[0] : js;
     let plddt = null;
     if (m.plddtDocUrl) { try { const p = await getJSON(m.plddtDocUrl); plddt = p.confidenceScore || (Array.isArray(p) ? p[0].confidenceScore : null); } catch (e) { plddt = null; } }
-    return { url: m.bcifUrl || m.cifUrl, format: m.bcifUrl ? "bcif" : "mmcif", seq: m.uniprotSequence || m.sequence, version: m.latestVersion || m.modelCreatedDate, plddt, entryId: m.entryId };
+    return { url: m.bcifUrl || m.cifUrl, format: m.bcifUrl ? "bcif" : "mmcif", cif: m.cifUrl, seq: m.uniprotSequence || m.sequence, version: m.latestVersion || m.modelCreatedDate, plddt, entryId: m.entryId };
   })().catch(e => { afCache.delete(acc); throw e; }));
   return afCache.get(acc);
 }
@@ -1287,10 +1468,11 @@ function renderStructLegend(doms, mode) {
     + (without.length ? `<h4 style="margin-top:8px">without sites</h4>${without.map(row).join("")}` : "");
 }
 async function renderStructure() {
-  const opts = ds.conditions.map(c => [`z:${c.id}`, `Z-score ${c.label}`]).concat([["motif", "Motif"], ["known", "Known in UniProt"], ["context", "Domain context"]]);
+  const opts = ds.conditions.map(c => [`z:${c.id}`, `Z-score ${c.label}`]).concat([["motif", "Motif"], ["known", "Known in UniProt"], ["context", "Domain context"], ["room", "Room for SUMO"]]);
   $("stcol").innerHTML = opts.map(([v, l]) => `<option value="${v}">${esc(l)}</option>`).join(""); $("stcol").value = S.stcol;
+  $("ststyle").value = S.ststyle; $("stroom").value = S.stroom; $("stsumo").value = S.stsumo;
   const msg = $("structmsg");
-  if (!active) { $("structname").innerHTML = "<b>No protein</b> — add one under <i>Proteins</i>"; msg.hidden = true; $("structlegend").hidden = true; return; }
+  if (!active) { $("structname").innerHTML = "<b>No protein</b> — add one under <i>Proteins</i>"; msg.hidden = true; $("structlegend").hidden = true; $("roommsg").innerHTML = ""; return; }
   const P = protReady.get(active); if (!P) return;
   const base = active.split("-")[0];
   $("structname").innerHTML = `<b>${esc(P.gene || active)}</b> <span style="color:var(--muted)">AlphaFold DB ${esc(base)}</span>`;
@@ -1299,16 +1481,26 @@ async function renderStructure() {
     await loadMolstar();
     if (!viewer) viewer = await molstar.Viewer.create("viewer", { layoutIsExpanded: false, layoutShowControls: false, layoutShowRemoteState: false, layoutShowSequence: true, layoutShowLog: false, layoutShowLeftPanel: false, viewportShowExpand: true, viewportShowSelectionMode: false, viewportShowAnimation: false, collapseLeftPanel: true, collapseRightPanel: true });
     const af = await afModel(base);
-    const sites = sitesOf(active).filter(s => !siteHidden(s, P)), placed = [], missing = [];
-    for (const s of sites) {
+    const modelPos = s => {
       let p = null;
       if (af.seq === P.seq) p = s.pos;
       else if (af.seq) { const ctx = (P.seq || "").slice(Math.max(0, s.pos - 8), s.pos + 7), i = ctx.length >= 9 ? af.seq.indexOf(ctx) : -1; if (i >= 0 && af.seq.indexOf(ctx, i + 1) < 0) p = i + (s.pos - 1 - Math.max(0, s.pos - 8)) + 1; }
-      if (p != null && af.seq[p - 1] === "K") placed.push([s, p]); else missing.push(s);
-    }
-    const el = p => ({ label_seq_id: p });
+      return p != null && af.seq && af.seq[p - 1] === "K" ? p : null;
+    };
+    const all = sitesOf(active), posMap = new Map();
+    for (const s of all) { const p = modelPos(s); if (p != null) posMap.set(s.pos, p); }
+    stPlaced = { acc: active, base, map: posMap, sites: [...posMap.values()] };
+    const R = roomFor(base, af), roomDone = R.state === "done", roomAt = p => roomDone ? R.lys.get(p) || null : null;
+    roomStatus();
+    const sites = all.filter(s => !siteHidden(s, P)), placed = [], missing = [];
+    for (const s of sites) { const p = posMap.get(s.pos); if (p != null) placed.push([s, p]); else missing.push(s); }
+    // only the sites with room for SUMO (or room or tight), once it is computed
+    const keep = r => r && (r.room === "room" || (S.stroom === "tight" && r.room === "tight"));
+    const shown = S.stroom !== "all" && roomDone ? placed.filter(([, p]) => keep(roomAt(p))) : placed;
+    const colOf = (s, p) => S.stcol === "room" ? (roomAt(p) ? ROOM.colours[roomAt(p).room] : ROOM.unset) : structColour(s, P);
+    const el = p => ({ label_seq_id: p }), sf = S.ststyle === "spacefill";
     const mode = $("stprot").value, domMode = mode === "domains" || mode === "pfam";
-    const protRep = { kind: "representation", params: { type: "cartoon" }, children: [{ kind: "color", params: { color: domMode ? DOMAIN_BACKBONE : "#D5D9E0" } }] };
+    const protRep = { kind: "representation", params: { type: sf ? "spacefill" : "cartoon" }, children: [{ kind: "color", params: { color: domMode ? DOMAIN_BACKBONE : "#D5D9E0" } }] };
     if (mode === "plddt" && af.plddt) {
       const by = new Map(); af.plddt.forEach((v, i) => { const c = plddtBand(v); (by.get(c) || by.set(c, []).get(c)).push(el(i + 1)); });
       for (const [color, selector] of by) protRep.children.push({ kind: "color", params: { color, selector } });
@@ -1331,25 +1523,37 @@ async function renderStructure() {
         comps.push({ kind: "component", params: { selector: el(Math.round((d.ms + d.me) / 2)) }, children: [{ kind: "label", params: { text: `${short} (${d.sites.length})` } }] });
       }
     }
-    if (placed.length) {
-      const by = new Map(); for (const [s, p] of placed) { const c = structColour(s, P); (by.get(c) || by.set(c, []).get(c)).push(el(p)); }
-      const rep = { kind: "representation", params: { type: "spacefill", size_factor: 1.5 }, children: [...by].map(([color, selector]) => ({ kind: "color", params: { color, selector } })) };
-      const comp = { kind: "component", params: { selector: placed.map(([, p]) => el(p)) }, children: [rep] };
-      comps.push(comp);
-      const showLab = $("stlabels").checked, selP = S.site && S.site.acc === active ? placed.find(([s]) => s.pos === S.site.pos) : null;
-      if (selP) comps.push({ kind: "component", params: { selector: el(selP[1]) }, children: [{ kind: "representation", params: { type: "spacefill", size_factor: 2.4 }, children: [{ kind: "color", params: { color: structColour(selP[0], P) } }] }] });
-      for (const [s, p] of placed) if (showLab && (placed.length <= 40 || isSigAny(s)) || (selP && selP[0] === s))
+    const selP = S.site && S.site.acc === active ? placed.find(([s]) => s.pos === S.site.pos) : null;
+    if (shown.length) {
+      const by = new Map(); for (const [s, p] of shown) { const c = colOf(s, p); (by.get(c) || by.set(c, []).get(c)).push(el(p)); }
+      if (sf) {   // space-filling: the site lysines are painted on the surface itself (a sphere would hide inside it)
+        for (const [color, selector] of by) protRep.children.push({ kind: "color", params: { color, selector } });
+      } else {
+        const rep = { kind: "representation", params: { type: "spacefill", size_factor: 1.5 }, children: [...by].map(([color, selector]) => ({ kind: "color", params: { color, selector } })) };
+        comps.push({ kind: "component", params: { selector: shown.map(([, p]) => el(p)) }, children: [rep] });
+      }
+      for (const [s, p] of shown) { const r = roomAt(p); comps.push({ kind: "component", params: { selector: el(p) }, children: [{ kind: "tooltip", params: { text: `${P.gene || active} K${s.pos}` + (r ? ` · room for SUMO: ${ROOM.labels[r.room]} (${pctRoom(r.fit)} of the placements)` : "") } }] }); }
+      const showLab = $("stlabels").checked;
+      for (const [s, p] of shown) if (showLab && (shown.length <= 40 || isSigAny(s)) || (selP && selP[0] === s))
         comps.push({ kind: "component", params: { selector: el(p) }, children: [{ kind: "label", params: { text: selP && selP[0] === s ? `▶ K${s.pos}` : `K${s.pos}` } }] });
     }
+    if (selP && !shown.includes(selP)) comps.push({ kind: "component", params: { selector: el(selP[1]) }, children: [{ kind: "label", params: { text: `▶ K${selP[0].pos}` } }] });
+    if (selP) comps.push({ kind: "component", params: { selector: el(selP[1]) }, children: [{ kind: "representation", params: { type: "spacefill", size_factor: sf ? 1.15 : 2.4 }, children: [{ kind: "color", params: { color: colOf(selP[0], selP[1]) } }] }] });
+    // SUMO2 at its placement: the selected site, or every site shown with room
+    const sumoAt = !roomDone || S.stsumo === "off" ? [] : S.stsumo === "selected" ? (selP ? [selP] : []) : shown.filter(([, p]) => roomAt(p) && roomAt(p).room === "room").slice(0, SUMO_MAX);
+    const sumoNodes = sumoAt.filter(([, p]) => roomAt(p) && roomAt(p).pose).map(([s, p]) => sumoNode(roomAt(p).pose, `SUMO2 at ${P.gene || active} K${s.pos} · a placement that fits (${pctRoom(roomAt(p).fit)} do)`, sf));
     const fd = doms && stFocus ? doms.find(d => d.key === stFocus) : null;
     if (fd) comps.push({ kind: "component", params: { selector: range(fd) }, children: [{ kind: "focus", params: {} }] });
     else comps[0].children.push({ kind: "focus", params: {} });   // always frame the whole model; Mol*'s own zoom goes closer
     const scene = { kind: "single", metadata: { version: "1", title: `${P.gene || active} AlphaFold model` }, root: { kind: "root", children: [
       { kind: "canvas", params: { background_color: "white" } },
-      { kind: "download", params: { url: af.url }, children: [{ kind: "parse", params: { format: af.format }, children: [{ kind: "structure", params: { type: "model" }, children: comps }] }] }] } };
+      { kind: "download", params: { url: af.url }, children: [{ kind: "parse", params: { format: af.format }, children: [{ kind: "structure", params: { type: "model" }, children: comps }] }] }].concat(sumoNodes) } };
     await viewer.loadMvsData(JSON.stringify(scene), "mvsj", { replaceExisting: true });
     structShown = active;
-    msg.innerHTML = `${placed.length} of ${sites.length} sites placed on ${esc(af.entryId || "the model")}${af.version ? ` (v${esc(af.version)})` : ""}.${missing.length ? ` Not placed: ${missing.slice(0, 10).map(s => "K" + s.pos).join(", ")}${missing.length > 10 ? " …" : ""} (sequence differs from the model).` : ""}${active !== base ? " Isoform: shown on the canonical model where the sequence context matches." : ""}`;
+    const roomNote = S.stroom !== "all" ? (roomDone ? ` Showing the ${shown.length} with ${S.stroom === "tight" ? "room or tight" : "room"} for SUMO.` : " All sites shown until the room for SUMO is computed.") : "";
+    const sumoNote = S.stsumo === "selected" && roomDone && selP && !sumoNodes.length ? ` No SUMO placement fits at K${selP[0].pos}.` : S.stsumo !== "off" && roomDone && sumoNodes.length ? ` SUMO2 drawn at ${sumoNodes.length} site${sumoNodes.length > 1 ? "s" : ""}${S.stsumo === "room" && sumoAt.length >= SUMO_MAX ? ` (the first ${SUMO_MAX})` : ""}.` : S.stsumo === "selected" && !selP ? " Select a site to draw SUMO2 at it." : "";
+    msg.innerHTML = `${placed.length} of ${sites.length} sites placed on ${esc(af.entryId || "the model")}${af.version ? ` (v${esc(af.version)})` : ""}.${missing.length ? ` Not placed: ${missing.slice(0, 10).map(s => "K" + s.pos).join(", ")}${missing.length > 10 ? " …" : ""} (sequence differs from the model).` : ""}${active !== base ? " Isoform: shown on the canonical model where the sequence context matches." : ""}${roomNote}${sumoNote}`;
+    roomStatus();
     setTimeout(() => { if (structShown === active) msg.hidden = true; }, 7000);
   } catch (e) {
     $("structlegend").hidden = true;
@@ -1357,6 +1561,115 @@ async function renderStructure() {
   }
 }
 const isSigAny = s => anySig(s);
+
+// ---------------------------------------------------------------- room for SUMO
+// The room-for-SUMO calculation of the Ribosome SUMO Viewer (Bernhard Buss, ETH Zurich; MIT licence), as
+// it runs there for a free protein: the worker (#fitworker) and the placement set (data/fit.json: the SUMO2
+// core of 1WM3, 96 orientations, 48 tether directions x 4 lengths, clash 2.2 Å, voxel 0.6 Å) are his,
+// unchanged, and so are the classes (room: at least 1 % of the 18,432 placements possible; none: < 0.1 %).
+// The atoms are the polymer heavy atoms of the AlphaFold DB model, read from its mmCIF file.
+const ROOM = { room: 0.01, none: 0.001, colours: { room: "#44AA99", tight: "#DDCC77", none: "#332288" }, unset: "#7A7A7A",
+               labels: { room: "room", tight: "tight", none: "no room" } };
+const SUMO_CORE = { url: "https://models.rcsb.org/1wm3.bcif", colour: "#117733" }, SUMO_MAX = 60;
+let SAMPLER = null, stPlaced = null;   // stPlaced: { acc, base, map: site position -> model position, sites: model positions of the sites placed }
+const roomCache = new Map();           // canonical accession -> { state: "running" | "done" | "failed", done, total, lys: Map(model position -> { fit, room, pose }), ms, error }
+const roomClass = f => f == null ? null : f >= ROOM.room ? "room" : f >= ROOM.none ? "tight" : "none";
+const pctRoom = f => f == null ? "–" : (100 * f).toFixed(f < 0.0995 ? 1 : 0) + " %";
+// The atoms of an AlphaFold model as the pipeline takes them: polymer heavy atoms, one alternative
+// conformation; per atom the coordinates, residue, and whether it belongs to a lysine side chain (CB–NZ);
+// every lysine NZ.
+function cifAtoms(text) {
+  const lines = text.split(/\r?\n/); let i = lines.findIndex(l => l.startsWith("_atom_site."));
+  if (i < 0) throw new Error("the model file has no atoms");
+  const cols = []; while (i < lines.length && lines[i].startsWith("_atom_site.")) { cols.push(lines[i].trim().slice(11)); i++; }
+  const c = n => cols.indexOf(n), iG = c("group_PDB"), iT = c("type_symbol"), iA = c("label_atom_id"), iAlt = c("label_alt_id"), iR = c("label_comp_id"), iS = c("label_seq_id"), iX = c("Cartn_x"), iY = c("Cartn_y"), iZ = c("Cartn_z");
+  if ([iG, iT, iA, iR, iS, iX, iY, iZ].some(v => v < 0)) throw new Error("the model file lacks atom columns");
+  const X = [], seq = [], side = [], lys = [], SIDE = new Set(["CB", "CG", "CD", "CE", "NZ"]);
+  for (; i < lines.length; i++) {
+    const l = lines[i]; if (!l || l[0] === "#" || l[0] === "_" || l.startsWith("loop_")) break;
+    const f = l.trim().split(/\s+/);
+    if (f[iG] !== "ATOM" || f[iT] === "H") continue;
+    const alt = iAlt >= 0 ? f[iAlt] : "."; if (alt !== "." && alt !== "?" && alt !== "A" && alt !== "1") continue;
+    const k = seq.length, nm = f[iA].replace(/"/g, ""), rs = +f[iS], isLys = f[iR] === "LYS";
+    X.push(+f[iX], +f[iY], +f[iZ]); seq.push(rs); side.push(isLys && SIDE.has(nm) ? 1 : 0);
+    if (isLys && nm === "NZ") lys.push({ id: rs, seq: rs, k, g: 0 });
+  }
+  const n = seq.length;
+  return { atoms: { n, X: Float32Array.from(X), seq: Int32Array.from(seq), side: Uint8Array.from(side), asym: new Int32Array(n) }, lys };
+}
+// The fit in worker threads (Bernhard's runFit): the lysines are dealt out to up to three workers.
+async function runFit(atoms, lys, nGroups, onProgress) {
+  if (!SAMPLER) SAMPLER = await getJSON("data/fit.json");
+  const url = URL.createObjectURL(new Blob([$("fitworker").textContent], { type: "text/javascript" }));
+  const nW = Math.max(1, Math.min(3, (navigator.hardwareConcurrency || 2) - 1, lys.length)), done = new Array(nW).fill(0), mine = [];
+  try {
+    const parts = await Promise.all(Array.from({ length: nW }, (_, w) => new Promise((resolve, reject) => {
+      const worker = new Worker(url); mine.push(worker);
+      worker.onmessage = e => {
+        const m = e.data;
+        if (m.type === "progress") { done[w] = m.done; onProgress(done.reduce((a, b) => a + b, 0), lys.length); }
+        else if (m.type === "done") resolve(m.results); else if (m.type === "error") reject(new Error(m.message));
+      };
+      worker.onerror = e => reject(new Error(e.message || "a worker thread failed"));
+      worker.postMessage({ type: "setup", sampler: SAMPLER });
+      worker.postMessage({ type: "fit", atoms: { n: atoms.n, X: atoms.X, seq: atoms.seq, side: atoms.side, asym: atoms.asym }, lys: lys.filter((_, i) => i % nW === w), nGroups });
+    })));
+    return parts.flat();
+  } finally { URL.revokeObjectURL(url); for (const w of mine) w.terminate(); }
+}
+// Room for SUMO at every lysine of a protein's model, once per protein; when it is done the structure
+// (if it depends on it) and the details follow.
+function roomFor(base, af) {
+  if (roomCache.has(base)) return roomCache.get(base);
+  const R = { state: "running", done: 0, total: 0, lys: new Map() }; roomCache.set(base, R);
+  (async () => {
+    const t0 = performance.now();
+    if (!af.cif) throw new Error("the AlphaFold DB gives no model file");
+    const r = await fetch(af.cif); if (!r.ok) throw new Error(`the AlphaFold DB answered ${r.status}`);
+    const { atoms, lys } = cifAtoms(await r.text()); R.total = lys.length; roomStatus();
+    const results = lys.length ? await runFit(atoms, lys, 1, d => { R.done = d; roomStatus(); }) : [];
+    for (const x of results) R.lys.set(x.id, { fit: Math.round(x.fit * 1e4) / 1e4, room: roomClass(x.fit), pose: x.pose });
+    R.ms = performance.now() - t0; R.state = "done";
+  })().catch(e => { R.state = "failed"; R.error = e.message; console.error(e); }).then(() => {
+    const here = active && active.split("-")[0] === base;
+    if (here && S.tab === "structure" && (S.stcol === "room" || S.stroom !== "all" || S.stsumo !== "off")) renderStructure(); else roomStatus();
+    if (S.site && S.site.acc.split("-")[0] === base) renderDetail();
+  });
+  return R;
+}
+const roomOfModel = (base, p) => { const R = roomCache.get(base); return R && R.state === "done" ? R.lys.get(p) || null : null; };
+// The room of a site, if its protein has been on the structure: { fit, room, pose } or a reason why not.
+function roomOfSite(acc, pos) {
+  const base = acc.split("-")[0], R = roomCache.get(base);
+  if (!R) return { why: "computed when the protein is shown in the Structure tab" };
+  if (R.state === "running") return { why: `computing… (${R.done} of ${R.total || "?"} lysines)` };
+  if (R.state === "failed") return { why: "could not be computed: " + R.error };
+  if (!stPlaced || stPlaced.acc !== acc) return { why: "shown when the protein is on the Structure tab" };
+  const p = stPlaced.map.get(pos); if (p == null) return { why: "the site is not on the model (sequence differs)" };
+  return roomOfModel(base, p) || { why: "no lysine side chain at this position in the model" };
+}
+// The line in the structure bar: progress while computing, then the classes and how many sites and
+// other lysines fall into them.
+function roomStatus() {
+  const box = $("roommsg"); if (!box) return;
+  const base = active && active.split("-")[0], R = base && roomCache.get(base);
+  if (!R) { box.innerHTML = ""; return; }
+  if (R.state === "running") { box.innerHTML = `computing ${R.done} of ${R.total || "…"} lysines <span class="pb"><i style="width:${R.total ? 100 * R.done / R.total : 0}%"></i></span>`; return; }
+  if (R.state === "failed") { box.innerHTML = `<span style="color:#B42318">could not be computed: ${esc(R.error)}</span>`; return; }
+  const sitesP = new Set(stPlaced && stPlaced.base === base ? stPlaced.sites : []), cnt = (pred) => { const o = { room: 0, tight: 0, none: 0, n: 0 }; for (const [p, r] of R.lys) if (pred(p)) { o[r.room]++; o.n++; } return o; };
+  const a = cnt(p => sitesP.has(p)), b = cnt(p => !sitesP.has(p));
+  box.innerHTML = Object.entries(ROOM.colours).map(([k, c]) => `<span><span class="sw" style="background:${c}"></span>${ROOM.labels[k]}</span>`).join("") +
+    `<span title="Room for SUMO computed for ${R.lys.size} lysines in ${(R.ms / 1000).toFixed(1)} s">room at <b>${a.room}</b> of ${a.n} sites · ${b.room} of ${b.n} other lysines</span>`;
+}
+// The SUMO2 core (1WM3) at a placement: rotation stored row by row, MolViewSpec wants it column by column.
+function sumoNode(pose, text, sf) {
+  const v = pose.split(" ").map(Number);
+  return { kind: "download", params: { url: SUMO_CORE.url }, children: [{ kind: "parse", params: { format: "bcif" }, children: [{ kind: "structure", params: { type: "model" }, children: [
+    { kind: "transform", params: { rotation: [v[0], v[3], v[6], v[1], v[4], v[7], v[2], v[5], v[8]], translation: [v[9], v[10], v[11]] } },
+    { kind: "component", params: { selector: "polymer" }, children: [
+      { kind: "representation", params: { type: sf ? "spacefill" : "cartoon" }, children: [{ kind: "color", params: { color: SUMO_CORE.colour } }] },
+      { kind: "tooltip", params: { text } }] }] }] }] };
+}
 
 // ---------------------------------------------------------------- aside controls
 function renderControls() {
@@ -1425,6 +1738,8 @@ function initControls() {
   $("stcol").addEventListener("change", () => { S.stcol = $("stcol").value; renderStructure(); syncUrl(); });
   $("stprot").addEventListener("change", () => { stFocus = null; renderStructure(); });
   $("stlabels").addEventListener("change", renderStructure);
+  for (const [id, k] of [["ststyle", "ststyle"], ["stroom", "stroom"], ["stsumo", "stsumo"]])
+    $(id).addEventListener("change", () => { S[k] = $(id).value; renderStructure(); syncUrl(); });
   $("structlegend").addEventListener("click", e => { const r = e.target.closest("[data-dkey]"); if (!r) return; stFocus = stFocus === r.dataset.dkey ? null : r.dataset.dkey; renderStructure(); });
 }
 
@@ -1490,7 +1805,8 @@ function renderDetail() {
       <dt>Annotation</dt><dd>${cov.length ? cov.map(f => `${esc(f.label)} <span style="color:var(--muted)">(${esc(f.type === "Pfam" ? "Pfam " + f.id : f.type)}, ${f.s}–${f.e})</span>`).join("<br>") : "<span style='color:var(--muted)'>none</span>"}</dd>
       ${condRows}${anova}
       ${s.cells.length || (ds.detection || []).length ? `<dt>Detected in</dt><dd>${s.cells.join(", ") || "–"}</dd>` : ""}
-      <dt>UniProt here</dt><dd>${rec.length ? rec.map(f => esc(f.label || f.type)).join("<br>") : "<span style='color:var(--muted)'>nothing recorded</span>"}</dd></dl>
+      <dt>UniProt here</dt><dd>${rec.length ? rec.map(f => esc(f.label || f.type)).join("<br>") : "<span style='color:var(--muted)'>nothing recorded</span>"}</dd>
+      <dt>Room for SUMO</dt><dd>${(r => r.room ? `<span class="dot" style="display:inline-block;width:9px;height:9px;border-radius:50%;background:${ROOM.colours[r.room]}"></span> <b>${ROOM.labels[r.room]}</b> · ${pctRoom(r.fit)} of the 18,432 placements fit` : `<span style='color:var(--muted)'>${esc(r.why)}</span>`)(roomOfSite(s.acc, s.pos))} <a class="hl" href="#help/structure/room" data-help="structure/room" title="Help: room for SUMO">ⓘ</a></dd></dl>
     <div class="acts">
       <a class="btn sm" href="https://www.uniprot.org/uniprotkb/${s.acc}" target="_blank" rel="noopener" style="text-decoration:none">UniProt</a>
       <a class="btn sm" href="https://alphafold.ebi.ac.uk/entry/${s.acc.split("-")[0]}" target="_blank" rel="noopener" style="text-decoration:none">AlphaFold DB</a>
@@ -1738,10 +2054,13 @@ function stateQuery() {
   if (S.hide.size) p.set("hide", [...S.hide].join(","));
   if (ds && (S.x !== "mg132" || S.y !== "hs") && ds.id === "human_hendriks2018") { p.set("x", S.x); p.set("y", S.y); }
   if (S.site) p.set("site", `${S.site.acc}:${S.site.pos}`);
+  if (S.ststyle !== "cartoon") p.set("style", S.ststyle);
+  if (S.stroom !== "all") p.set("room", S.stroom);
+  if (S.stsumo !== "off") p.set("sumo", S.stsumo);
   return p.toString().replace(/%2C/g, ",").replace(/%3A/g, ":");
 }
 function syncUrl() { if (ds && ds.user) return; const q = stateQuery(), h = location.hash.startsWith("#help") ? location.hash : ""; history.replaceState(null, "", (q ? "?" + q : location.pathname) + h); }
-function readUrlState() { const p = new URLSearchParams(location.search); const g = k => p.get(k); return { d: g("d"), p: g("p") ? g("p").split(",").filter(Boolean) : [], a: g("a"), tab: g("tab"), c: g("c") ? g("c").split(",") : null, colour: g("colour"), labels: g("labels"), size: g("size"), hide: g("hide") ? g("hide").split(",") : [], x: g("x"), y: g("y"), site: g("site") }; }
+function readUrlState() { const p = new URLSearchParams(location.search); const g = k => p.get(k); return { d: g("d"), p: g("p") ? g("p").split(",").filter(Boolean) : [], a: g("a"), tab: g("tab"), c: g("c") ? g("c").split(",") : null, colour: g("colour"), labels: g("labels"), size: g("size"), hide: g("hide") ? g("hide").split(",") : [], x: g("x"), y: g("y"), site: g("site"), style: g("style"), room: g("room"), sumo: g("sumo") }; }
 
 // ---------------------------------------------------------------- help
 function initHelp() {
@@ -1821,6 +2140,9 @@ async function main() {
   if (st.colour && COLOURINGS.some(c => c[0] === st.colour)) S.colour = st.colour;
   if (["auto", "all", "sig", "none"].includes(st.labels)) S.labels = st.labels;
   if (["comfortable", "compact"].includes(st.size)) S.size = st.size;
+  if (st.style === "spacefill") S.ststyle = st.style;
+  if (["room", "tight"].includes(st.room)) S.stroom = st.room;
+  if (["selected", "room"].includes(st.sumo)) S.stsumo = st.sumo;
   S.hide = new Set(st.hide);
   await loadDataset(st.d || DSI.default, st);
   initHelp(); initControls(); initMapInteraction(); initScatter(); initTable(); initBrowse(); initUser(); initExport(); initFonts();

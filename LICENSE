@@ -32,3 +32,8 @@ services it calls keep their own licences:
 - InterPro / Pfam domain positions — CC0.
 - AlphaFold DB models (fetched at run time, not redistributed) — CC BY 4.0.
 - Mol* (loaded from a CDN at run time) — MIT.
+- Room-for-SUMO calculation (the #fitworker script in index.html) and its placement set
+  (data/fit.json): from the Ribosome SUMO Viewer v0.13.1 by Bernhard Buss,
+  Copyright (c) 2026 ETH Zurich — MIT licence, with the same permission notice and
+  disclaimer as above.
+- SUMO2 structure drawn at the sites: PDB 1WM3 (fetched at run time from RCSB PDB) — CC0.
